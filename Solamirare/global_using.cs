@@ -1,0 +1,19 @@
+﻿global using System;
+global using System.Collections.Generic;
+global using System.Linq;
+global using System.Text;
+global using System.Security.Cryptography;
+global using System.Collections.Concurrent;
+global using Solamirare.Extention;
+global using Microsoft.Extensions.Primitives;
+global using Solamirare.Encrypt;
+global using System.Diagnostics;
+global using System.Text.Json;
+global using System.Text.Json.Serialization;
+global using System.Text.RegularExpressions;
+global using System.Dynamic;
+global using System.Net;
+global using System.Net.Http.Headers;
+global using Solamirare.Net;
+global using System.Collections.Frozen;
+
