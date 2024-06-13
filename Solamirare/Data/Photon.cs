@@ -57,31 +57,37 @@ namespace Solamirare
 
 
         /// <summary>
-        /// 导出简单 json，仅限简单数据场合使用，同时该功能出于性能考虑，不作任何安全检查。
+        /// 导出 json 对象
         /// </summary>
         /// <param name="jsonGenerator"></param>
         /// <param name="keys">可选节点名称</param>
         /// <returns></returns>
-        public string ExportToSimpleJson(ITextSerializer jsonGenerator, params string[] keys)
+        public string ExportToJson(ITextSerializer jsonGenerator, params string[] keys)
         {
             IEnumerable<KeyValuePair<string, string>> selected = Export(keys);
 
 
-            return jsonGenerator.SerializeObject(selected);
+
+            return jsonGenerator.SerializeObject(selected,keys.Length);
         }
 
 
 
 
         /// <summary>
-        /// 导出简单 json，仅限简单数据场合使用，同时该功能出于性能考虑，不作任何安全检查。
+        /// 导出 json 对象。
         /// </summary>
         /// <param name="jsonGenerator"></param>
         /// <returns></returns>
-        public string ExportToSimpleJson(ITextSerializer jsonGenerator)
+        public string ExportToJson(ITextSerializer jsonGenerator)
         {
-            return jsonGenerator.SerializeObject(Data);
+            return jsonGenerator.SerializeObject(Data,length);
         }
+
+
+
+
+
 
 
         /// <summary>

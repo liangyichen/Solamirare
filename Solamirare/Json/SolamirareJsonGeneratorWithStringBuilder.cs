@@ -1,4 +1,9 @@
 ﻿
+
+
+//基于span的算法暂时屏蔽不使用
+
+/*
 namespace Solamirare
 {
 
@@ -314,3 +319,5 @@ namespace Solamirare
         }
     }
 }
+
+*/

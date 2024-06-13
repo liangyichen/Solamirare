@@ -14,18 +14,6 @@ namespace CommonFunctions
             ITextSerializer itext = new SolamirareJsonGenerator();
 
 
-var html  = """
-
-
-    {"AllowBlogComment":"False","name":"SystemSetting","GoogleMapKey":"AIzaSyA4u7eA_JZwoTcp1fbakEzk-m63r7l6hsg","ContentTitleLength":"128","ContentsDisplayEveyPageCount":"15","AdminPasswordOnlyInit":"Qazwsx123!","HeadKeywords":"liang yichen","HeadDescription":"Liang Yichen, A Photographer Around the World.","TimeZone":"0","InnerHead":"<link rel=\"apple-touch-icon\" href=\"/favicon.ico\" />
-
-<meta property=\"og:title\" content=\"liang yichen\" />
-
-<hr />
-
-
-""";
-
 
 
             var data = new Dictionary<string,string>();
@@ -34,18 +22,19 @@ var html  = """
             var value = "<my \\tname>";
 
             data.Add(name, value);
-            data.Add("na>me2", "va<lue2");
-
-            // var ms_json = System.Text.Json.JsonSerializer.Serialize(new KeyValuePair<string,string>(name,value));
-            
-            
-            // var test_length = "{\"\\u003cname\":\"my name\"}".Length;
+            data.Add("name2", "value2");
 
 
-            // data.AppendIfNotExist("lastname", "my lastname");
-            // data.AppendIfNotExist("html",html);
+            var json = itext.SerializeObject(data);
 
-            var json = itext.SerializeCollection(data);
+
+            //-----------------
+
+            var emus = new string[] { "<aaaa" };
+
+
+            var json_emus = itext.SerializeCollection(emus);
+
             
             Console.WriteLine(json);
         }

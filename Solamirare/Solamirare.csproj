@@ -23,6 +23,7 @@
 	  <PackageLicenseFile>License.txt</PackageLicenseFile>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 	  <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	  <LangVersion>preview</LangVersion>
 </PropertyGroup>
 
   <ItemGroup>

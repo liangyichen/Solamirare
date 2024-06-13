@@ -33,7 +33,7 @@ namespace TestSimpleJsonPerformance
         public void SimpleJson()
         {
             for (var i = 0; i < Count; i++)
-                obj.ExportToSimpleJson(jsonGenerator);
+                obj.ExportToJson(jsonGenerator);
         }
 
 

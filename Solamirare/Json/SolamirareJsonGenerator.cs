@@ -37,7 +37,11 @@
         }
         
 
-
+        /// <summary>
+        /// 重新计算字符串在进行特殊符号重写后的所需长度
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
         static int NewLength(ReadOnlySpan<char> source)
         {
          
@@ -60,20 +64,184 @@
             return source_old_length;
         }
 
+
+        
         static int appendChar(char* p_source, Span<char> codeChars)
         {
             return PointerOperator.SetPointerValue(p_source, '\\','u','0','0',codeChars[0],codeChars[1]);
         }
 
-      
-      
+
+
+
+
+
+        /// <summary>
+        /// 序列化集合
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="countIf">如果外部能够事先知晓集合的长度，传进来可以改善性能</param>
+        /// <returns></returns>
+        public string SerializeCollection(IEnumerable<string> data, int countIf = -1)
+        {
+
+            if (data is null)
+            {
+                return "[]";
+            }
+
+
+            //这次计算必须做，好在测试后发现 AOT 和 Jit Release 差异不大, 都能在百万级别领先微软自带 json，
+            var enumsLength = countIf > 0? countIf: data.Count();
+
+            if (enumsLength <= 0) return "[]";
+
+
+            var schema = new int[enumsLength, 2];
+            var schme_index = 0;
+            int charsCount = 0;
+
+
+            foreach (var d in data)
+            {
+
+                var spanKey = d.AsSpan();
+
+                //key中用于替换非法字符的新字符总数量 - 非法字符数量，（因为下面需要与key的原始长度相加）
+                var keyNewLength = NewLength(spanKey);
+
+
+                //以下的数字长度依次是： 双引号 + key + 双引号 + 结束符号( 右括号 或 逗号 )
+                var eachCount = 1 + keyNewLength  + 1 + 1;
+
+
+                schema[schme_index, 0] = spanKey.Length; //key的原始长度
+                schema[schme_index, 1] = keyNewLength; //key的新长度
+
+               
+
+                schme_index += 1;
+
+                charsCount += eachCount;
+
+            }
+
+
+            if (charsCount < 1)
+            {
+                return "[]";
+            }
+
+
+            charsCount += 1; //这个1是最左边的起始符号，[
+
+            schme_index = 0;
+
+            int loop = 0;
+
+            var i = data.GetEnumerator();
+
+            var loop_count_index = 0;
+
+            int indexOfEnd = charsCount - 1; //最后一个字符的索引位置
+
+            char* p_result = stackalloc char[charsCount];
+
+            Span<char> p_FailureChars = FailureChars;
+
+            p_result[0] = '[';
+            p_result[indexOfEnd] = ']';
+
+
+            while (i.MoveNext())
+            {
+
+                loop_count_index += loop == 0 ? 1 : schema[loop - 1,1]; //后段备注：获取上一次循环的长度
+
+
+                //起始点： 本次循环的起始点
+                int each_last_index = loop_count_index;
+
+
+
+                fixed (char* p_value = i.Current)
+                {
+
+                    char* p_result_value = &p_result[each_last_index];
+
+                    *p_result_value = '"';
+                    p_result_value += 1;
+                    each_last_index += 1;
+
+
+                    if (schema[schme_index,1] > schema[schme_index, 0])
+                    {
+                        for (var n = 0; n < schema[schme_index, 0]; n++)
+                        {
+                            char* p_valueChar = &p_value[n];
+
+                            if (p_FailureChars.IndexOf(*p_valueChar) > -1)
+                            {
+                                var newIndex = appendChar(p_result_value, symbols[*p_valueChar]);
+                                p_result_value += newIndex;
+                                each_last_index += newIndex;
+                            }
+                            else
+                            {
+                                *p_result_value = *p_valueChar;
+                                p_result_value += 1;
+                                each_last_index += 1;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (var n = 0; n < schema[schme_index, 0]; n++)
+                        {
+                            char* p_valueChar = &p_value[n];
+
+                            *p_result_value = *p_valueChar;
+                            p_result_value += 1;
+                            each_last_index += 1;
+                        }
+                    }
+
+
+                    *p_result_value = '\"';
+                    p_result_value += 1;
+                    each_last_index += 1;
+                }
+
+
+                //----------  本次 key - value 节点赋值结束 -----
+
+                if (each_last_index < indexOfEnd)
+                {
+
+                    p_result[each_last_index] = ',';
+
+                    each_last_index += 1;
+
+                    schme_index += 1;
+
+                    loop += 1;
+                }
+
+            }
+
+            var result = new Span<char>(p_result, charsCount);
+
+            return result.ToString();
+        }
+
 
         /// <summary>
         /// 序列化对象
         /// </summary>
         /// <param name="data"></param>
+        /// <param name="countIf">如果外部能够事先知晓集合的长度，传进来可以改善性能</param>
         /// <returns></returns>
-        string serializeObject(IEnumerable<KeyValuePair<string, string>> data)
+        public string SerializeObject(IEnumerable<KeyValuePair<string, string>> data, int countIf = -1)
         {
             //以下算法可以只需要组合 enumsLength 次 char 数组，
             //如果使用字符串相加，需要 5 * enumsLength 段字符串碎片
@@ -86,16 +254,16 @@
             
             //这次计算必须做，好在 AOT 和 Jit Release 中依然在百万级别领先微软自带 json， 差异不大
             var enumsLength = data.Count();
-            
+
+            if (enumsLength <= 0) return "{}";
+
 
             var schema = new int[enumsLength, 5];
             var schme_index = 0;
             int charsCount = 0;
-            int quotesCount = 0;
-            bool hasQuotes = false;
 
 
-            foreach(var d in data)
+            foreach (var d in data)
             {
 
                 var spanKey = d.Key.AsSpan();
@@ -108,7 +276,7 @@
                 //value中用于替换非法字符的新字符总数量 - 非法字符数量，（因为下面需要与value的原始长度相加）
                 var valueNewLength = NewLength(spanValue);
 
-                //以下的数字长度依次是： 双引号 + key + key的非法字符数量 + (双引号 + 逗号 + 双引号) + value + value的非法字符数量 + 双引号 + 结束符号( 右括号 或 逗号 )
+                //以下的数字长度依次是： 双引号 + key  + (双引号 + 逗号 + 双引号) + value + 双引号 + 结束符号( 右括号 或 逗号 )
                 var eachCount = 1 + keyNewLength + 3 + valueNewLength + 1 + 1;
 
 
@@ -118,7 +286,6 @@
                 schema[schme_index, 3] = keyNewLength; //key的新长度
                 schema[schme_index, 4] = valueNewLength; //value的新长度
 
-                quotesCount += keyNewLength + valueNewLength;
 
                 schme_index += 1;
 
@@ -133,9 +300,7 @@
             }
 
 
-            charsCount += 1; //这个1是最左边的起始符号，[ 或 {
-
-            hasQuotes = quotesCount > 0; //往后的操作是否需要查找双引号
+            charsCount += 1; //这个1是最左边的起始符号，{
 
             schme_index = 0;
 
@@ -184,20 +349,21 @@
 
 
 
-                    fixed (char* p_key = i.Current.Key)
+                fixed (char* p_key = i.Current.Key)
+                {
+                    char* p_result_key = &p_result[each_key_index];
+
+                    *p_result_key = '"';
+                    p_result_key += 1;
+
+                    if (schema[schme_index, 3] > schema[schme_index, 0])
                     {
-                        char* p_result_key = &p_result[each_key_index];
-
-                        
-
-                        *p_result_key = '"';
-                        p_result_key += 1;
-
-
                         for (var n = 0; n < schema[schme_index, 0]; n++)
                         {
                             char* p_keyChar = &p_key[n];
-                            if (hasQuotes &&  p_FailureChars.IndexOf(*p_keyChar) > -1)
+
+
+                            if (p_FailureChars.IndexOf(*p_keyChar) > -1)
                             {
                                 var nextIndex = appendChar(p_result_key, symbols[*p_keyChar]);
                                 p_result_key += nextIndex;
@@ -208,31 +374,52 @@
                                 p_result_key += 1;
                             }
                         }
-
-
-                        *p_result_key = '"';
                     }
+                    else
+                    {
+                        //某些情况是业务本身就不需要查找特殊字符的，而且这样的情况也很频繁，例如 {"name":"my name"},{"age":"11"}
+                        //虽然重复了四行代码，但是提高的性能是值得的
+                        
+                        for (var n = 0; n < schema[schme_index, 0]; n++)
+                        {
+                            char* p_keyChar = &p_key[n];
+
+                            *p_result_key = *p_keyChar;
+                            p_result_key += 1;
+                        }
+
+                        //以下逻辑2的对应部分也是同理
+                    }
+
+
+                    *p_result_key = '"';
+                }
                 
+
+
                 //----------  独立逻辑1结束 --------
 
 
 
                 //----------  独立逻辑2 -------------
                 
-                    fixed (char* p_value = i.Current.Value)
+                fixed (char* p_value = i.Current.Value)
+                {
+
+                    char* p_result_value = &p_result[each_last_index];
+
+                    int nextIndex = PointerOperator.SetPointerValue(p_result_value,':','"');
+                    p_result_value += nextIndex;
+                    each_last_index += nextIndex;
+
+
+                    if (schema[schme_index, 4] > schema[schme_index, 1])
                     {
-
-                        char* p_result_value = &p_result[each_last_index];
-
-                        int nextIndex = PointerOperator.SetPointerValue(p_result_value,':','"');
-                        p_result_value += nextIndex;
-                        each_last_index += nextIndex;
-
                         for (var n = 0; n < schema[schme_index, 1]; n++)
                         {
                             char* p_valueChar = &p_value[n];
 
-                            if (hasQuotes && p_FailureChars.IndexOf(*p_valueChar) > -1)
+                            if (p_FailureChars.IndexOf(*p_valueChar) > -1)
                             {
                                 var newIndex = appendChar(p_result_value, symbols[*p_valueChar]);
                                 p_result_value += newIndex;
@@ -245,12 +432,24 @@
                                 each_last_index += 1;
                             }
                         }
-
-
-                        *p_result_value = '\"';
-                        p_result_value += 1;
-                        each_last_index += 1;
                     }
+                    else
+                    {
+                        for (var n = 0; n < schema[schme_index, 1]; n++)
+                        {
+                            char* p_valueChar = &p_value[n];
+
+                            *p_result_value = *p_valueChar;
+                            p_result_value += 1;
+                            each_last_index += 1;
+                        }
+                    }
+
+
+                    *p_result_value = '\"';
+                    p_result_value += 1;
+                    each_last_index += 1;
+                }
                 
                 
                 //----------  独立逻辑2结束 ---------
@@ -280,24 +479,5 @@
         }
 
 
-        /// <summary>
-        /// 序列化单一对象，输出的是对象格式，例如： { data各个节点 } 。data 的实际源通常是 Dictionary 等 K-V 类型
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public string SerializeObject(IEnumerable<KeyValuePair<string, string>> data)
-        {
-            return serializeObject(data);
-        }
-
-        /// <summary>
-        /// 序列化集合，输出的是集合格式，例如： [ data各个节点 ] 。data 的实际源通常是任意集合类型
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        public string SerializeCollection(IEnumerable<KeyValuePair<string, string>> data)
-        {
-            return serializeObject(data);
-        }
     }
 }

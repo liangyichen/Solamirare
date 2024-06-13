@@ -35,7 +35,7 @@ namespace Test
 
             var t = "";
             for (int i = 0; i < loop; i++)
-                t = obj.ExportToSimpleJson(jsonGenerator);
+                t = obj.ExportToJson(jsonGenerator);
 
             st2.Stop();
 
@@ -62,7 +62,7 @@ namespace Test
 
 
             ITextSerializer jsonGenerator = new SolamirareJsonGenerator();
-            var result =  obj.ExportToSimpleJson(jsonGenerator);
+            var result =  obj.ExportToJson(jsonGenerator);
 
 
             var count =  result.Count();
