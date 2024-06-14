@@ -18,11 +18,14 @@ namespace CommonFunctions
 
             var data = new Dictionary<string,string>();
 
-            var name = "<name>";
-            var value = "<my \\tname>";
+            //var name = "<name>";
+            //var value = "<my \\tname>";
 
-            data.Add(name, value);
-            data.Add("name2", "value2");
+            //data.Add(name, value);
+            data.Add("nam\"e2", "value2");
+            data.Add("name3", "val>ue3");
+            data.Add("na>me4", "value4");
+            data.Add("name5", "value5");
 
 
             var json = itext.SerializeObject(data);
