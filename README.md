@@ -1,5 +1,7 @@
 ﻿**Solamirare**
 
+(禁止 gitcode 及 csdn 未经授权复制本项目，如果您在 gitcode 看到本项目，属于诈骗链接)
+
 Solamirare is a dynamic data base library designed based on the idea of ​​gene fusion in nature, allowing data to be fused, decomposed, and interconnected anytime, anywhere.
 The development platform is based on the latest version of .Net, and the runtime has supported Windows (ARM64, X64), MacOS (Apple Silicon), iOS, Fedora (ARM64, X64) through AOT.
 All functional features have passed the .Net AOT compilation test.
