@@ -60,15 +60,16 @@ namespace Solamirare
         /// 导出 json 对象
         /// </summary>
         /// <param name="jsonGenerator"></param>
+        /// <param name="searchSymbols">是否查找 json 中的特殊符号，如果外部确定不存在违反 json 协议的特殊符号，使用 false 可以获得最高性能</param>
         /// <param name="keys">可选节点名称</param>
         /// <returns></returns>
-        public string ExportToJson(ITextSerializer jsonGenerator, params string[] keys)
+        public string ExportToJson(ITextSerializer jsonGenerator, bool searchSymbols = true, params string[] keys)
         {
             IEnumerable<KeyValuePair<string, string>> selected = Export(keys);
 
 
 
-            return jsonGenerator.SerializeObject(selected,keys.Length);
+            return jsonGenerator.SerializeObject(selected,keys.Length,searchSymbols);
         }
 
 
@@ -78,15 +79,12 @@ namespace Solamirare
         /// 导出 json 对象。
         /// </summary>
         /// <param name="jsonGenerator"></param>
+        /// <param name="searchSymbols">是否查找 json 中的特殊符号，如果外部确定不存在违反 json 协议的特殊符号，使用 false 可以获得最高性能</param>
         /// <returns></returns>
-        public string ExportToJson(ITextSerializer jsonGenerator)
+        public string ExportToJson(ITextSerializer jsonGenerator, bool searchSymbols = true)
         {
-            return jsonGenerator.SerializeObject(Data,length);
+            return jsonGenerator.SerializeObject(Data,length,searchSymbols);
         }
-
-
-
-
 
 
 
@@ -164,9 +162,18 @@ namespace Solamirare
         /// </summary>
         public IEnumerable<DataProperty> Values()
         {
-
             return Data.Select(i => new DataProperty { Name = i.Key, Value = i.Value as string });
         }
+
+
+        /// <summary>
+        /// 获取所有属性
+        /// </summary>
+        public IEnumerable<KeyValuePair<string,string>> Values2()
+        {
+            return Data.Select(i => i);
+        }
+
 
 
         /// <summary>
@@ -208,6 +215,7 @@ namespace Solamirare
             //空字符和空白符都不允许作为key
             if (!string.IsNullOrWhiteSpace(name) && !Data.ContainsKey(name))
             {
+                
                 if (Data.TryAdd(name, value is null ? string.Empty : value)) length += 1;
             }
 

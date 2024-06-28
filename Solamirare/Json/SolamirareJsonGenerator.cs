@@ -1,284 +1,813 @@
-﻿namespace Solamirare
+﻿
+namespace Solamirare
 {
 
     /// <summary>
     /// Solamirare 自实现 json 序列化
     /// </summary>
-    public unsafe class SolamirareJsonGenerator: ITextSerializer
+    public unsafe sealed class SolamirareJsonGenerator: ITextSerializer
     {
-        static FrozenDictionary<char,char[]> symbols;
 
-        static char[] FailureChars;
-
-       
-        /// <summary>
-        /// Solamirare 自实现 json 序列化
-        /// </summary>
-        static SolamirareJsonGenerator() {
-
-            
-
-            var _symbols = new Dictionary<char, char[]>
-            {
-                { '"', ['2', '2'] },
-                { '/', ['2', 'F'] },
-                { '<', ['3', 'C'] },
-                { '>', ['3', 'E'] },
-                { '&', ['2', '6'] },
-                { '\\', ['5', 'C'] },
-                { '\n', ['0', 'A'] },
-                { '\r', ['0', 'D'] },
-                { '\t', ['0', '9'] },
-                { '\f', ['0', 'C'] },
-                { '\xA0', ['A', '0'] },
-                { '\v', ['0', 'B'] }
-            };
-
-            symbols = _symbols.ToFrozenDictionary();
-            FailureChars = symbols.Keys.ToArray();
-        }
+        static readonly char[] symbolsReplace;
         
+        static readonly char[] pref;
 
+        static SolamirareJsonGenerator()
+        {
+            symbolsReplace  = new char['\\' + 2];
+
+            symbolsReplace['"' - 1] = '2';
+            symbolsReplace['"' + 1] = '2';
+
+            symbolsReplace['<' - 1] = '3';
+            symbolsReplace['<' + 1] = 'C';
+
+            symbolsReplace['\'' - 1] = '2';
+            symbolsReplace['\'' + 1] = '7';
+
+            pref = new char[4] { '\\', 'u', '0', '0' };
+        }
+
+        
         /// <summary>
-        /// 重新计算字符串在进行特殊符号重写后的所需长度
+        /// 序列化对象，输出 {"name":"my name",......} 形式
         /// </summary>
-        /// <param name="source"></param>
+        /// <param name="data"></param>
+        /// <param name="countIf"></param>
+        /// <param name="searchSymbols"></param>
         /// <returns></returns>
-        static int NewLength(ReadOnlySpan<char> source)
+        public string SerializeObject(IEnumerable<KeyValuePair<string, string>> data, int countIf = -1, bool searchSymbols = true)
         {
-         
-            int source_old_length = source.Length;
 
-            for (int i = 0;i<FailureChars.Length;i++)
-            {
-                if(source.IndexOf(FailureChars[i]) > -1) 
-                {
-                    var failureChars_count = source.Count(FailureChars[i]);//当前遍历到的这个特殊符号的出现次数
-                    source_old_length -= failureChars_count; //减去这些原始特殊字符的数量，因为它们将会被消失，所以要减去
-                    
+            if(searchSymbols)
+                return serializeObjectRebuild(data, countIf);
+            else
+                return SerializeObjectsNative(data, countIf);
 
-                    var new_str_chars_count = failureChars_count * 6; //6是特殊符号的utf8表示字符串长度， 例如 \u0022 ，它们都是6位长度
-                    source_old_length += new_str_chars_count; //把计算得到的新utf8字符串长度加进来
-                }
-            }
-            
-
-            return source_old_length;
         }
-
-
-        
-        static int appendChar(char* p_source, Span<char> codeChars)
-        {
-            return PointerOperator.SetPointerValue(p_source, '\\','u','0','0',codeChars[0],codeChars[1]);
-        }
-
-
-        public string SerializeObject(IEnumerable<KeyValuePair<string, string>> data, int countIf = -1)
-
-
 
         /// <summary>
-        /// 序列化集合
+        /// 序列化集合，输出 ["myname","my age",......] 形式
         /// </summary>
         /// <param name="data"></param>
         /// <param name="countIf">如果外部能够事先知晓集合的长度，传进来可以改善性能</param>
+        /// <param name="searchSymbols"></param>
         /// <returns></returns>
-        public string SerializeCollection(IEnumerable<string> data, int countIf = -1)
+        public string SerializeCollection(IEnumerable<string> data, int countIf = -1, bool searchSymbols = true)
         {
 
-            if (data is null)
-            {
-                return "[]";
-            }
-
-
-            //这次计算必须做，好在测试后发现 AOT 和 Jit Release 差异不大, 都能在百万级别领先微软自带 json，
-            var enumsLength = countIf > 0? countIf: data.Count();
-
-            if (enumsLength <= 0) return "[]";
-
-
-            var schema = new int[enumsLength, 2];
-            var schme_index = 0;
-            int charsCount = 0;
-
-
-            foreach (var d in data)
-            {
-
-                var spanKey = d.AsSpan();
-
-                //key中用于替换非法字符的新字符总数量 - 非法字符数量，（因为下面需要与key的原始长度相加）
-                var keyNewLength = NewLength(spanKey);
-
-
-                //以下的数字长度依次是： 双引号 + key + 双引号 + 结束符号( 右括号 或 逗号 )
-                var eachCount = 1 + keyNewLength  + 1 + 1;
-
-
-                schema[schme_index, 0] = spanKey.Length; //key的原始长度
-                schema[schme_index, 1] = keyNewLength; //key的新长度
-
-               
-
-                schme_index += 1;
-
-                charsCount += eachCount;
-
-            }
-
-
-            if (charsCount < 1)
-            {
-                return "[]";
-            }
-
-
-            charsCount += 1; //这个1是最左边的起始符号，[
-
-            schme_index = 0;
-
-            int loop = 0;
-
-            var i = data.GetEnumerator();
-
-            var loop_count_index = 0;
-
-            int indexOfEnd = charsCount - 1; //最后一个字符的索引位置
-
-            char* p_result = stackalloc char[charsCount];
-
-            Span<char> p_FailureChars = FailureChars;
-
-            p_result[0] = '[';
-            p_result[indexOfEnd] = ']';
-
-
-            while (i.MoveNext())
-            {
-
-                loop_count_index += loop == 0 ? 1 : schema[loop - 1,1]; //后段备注：获取上一次循环的长度
-
-
-                //起始点： 本次循环的起始点
-                int each_last_index = loop_count_index;
-
-
-
-                fixed (char* p_value = i.Current)
-                {
-
-                    char* p_result_value = &p_result[each_last_index];
-
-                    *p_result_value = '"';
-                    p_result_value += 1;
-                    each_last_index += 1;
-
-
-                    if (schema[schme_index,1] > schema[schme_index, 0])
-                    {
-                        for (var n = 0; n < schema[schme_index, 0]; n++)
-                        {
-                            char* p_valueChar = &p_value[n];
-
-                            if (p_FailureChars.IndexOf(*p_valueChar) > -1)
-                            {
-                                var newIndex = appendChar(p_result_value, symbols[*p_valueChar]);
-                                p_result_value += newIndex;
-                                each_last_index += newIndex;
-                            }
-                            else
-                            {
-                                *p_result_value = *p_valueChar;
-                                p_result_value += 1;
-                                each_last_index += 1;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        for (var n = 0; n < schema[schme_index, 0]; n++)
-                        {
-                            char* p_valueChar = &p_value[n];
-
-                            *p_result_value = *p_valueChar;
-                            p_result_value += 1;
-                            each_last_index += 1;
-                        }
-                    }
-
-
-                    *p_result_value = '\"';
-                    p_result_value += 1;
-                    each_last_index += 1;
-                }
-
-
-                //----------  本次 key - value 节点赋值结束 -----
-
-                if (each_last_index < indexOfEnd)
-                {
-
-                    p_result[each_last_index] = ',';
-
-                    each_last_index += 1;
-
-                    schme_index += 1;
-
-                    loop += 1;
-                }
-
-            }
-
-            var result = new Span<char>(p_result, charsCount);
-
-            return result.ToString();
+            if (searchSymbols)
+                return serializeCollectionRebuild(data, countIf);
+            else
+                return SerializeCollectionNative(data, countIf);
         }
 
 
-        /// <summary>
-        /// 序列化对象
-        /// </summary>
-        /// <param name="line"></param>
-        /// <returns></returns>
-        public char* serializLine(string line) 
-        { 
+
+            
+        unsafe string SerializeObjectsNative(IEnumerable<KeyValuePair<string, string>> data, int length = -1)
+        {
+            if (data is null) return "{}";
+
+            int loopCount = 0;
+
+            if (length <= 0)
+            {
+                if (data is Array)
+                    loopCount = (data as KeyValuePair<string, string>[])!.Length; //数组的长度是天然可以获取的
+                else
+                    loopCount = data.Count(); //外部既不指定长度， 这边内部也检测到它不是数组，这一步就逃不脱了
+            }
+            else
+            {
+                loopCount = length; //外部已知长度
+            }
+
+            if (loopCount <= 0) return "{}";
+
+
+            int* schema = stackalloc int[loopCount * 3];
+
+
+
+            int charsCount = 0; //字符总数量
+
+            foreach (var s in data)
+            {
+
+                *schema = s.Key.Length;
+                schema += 1;
+
+                *schema = s.Value.Length;
+                schema += 1;
+
+                *schema = charsCount + 1;
+                schema += 1;
+
+                // 2个3分别是 两边的双引号和右边再加一个结束符号( 右括号 或 逗号 )， 以及区分 key 和 value 的 两个双引号和一个冒号
+                charsCount += s.Key.Length + 3 + s.Value.Length + 3;
+
+
+            }
+
+
+            // 强制限制使用的内存容量
+            // 2000000 = 1000 * 1000 * 2 , 按照 unix 计算方法的 2M， 64位系统的栈内存是 4M，
+            // 因为其它进程也需要使用栈内存，这里设定为最大只能使用一半
+            // 不考虑32位系统
+
+            if (charsCount > 2000000) return "{}";
+
+
+            charsCount += 1; //左符号 { 或 [
+
+
+            schema -= loopCount * 3; //把指向给复位回去，后面还需要通过自增的形式再次使用这个指针
+
+            Span<char> resultString = stackalloc char[charsCount];
+
+            fixed (char* p_result_chars = &resultString[0])
+            {
+
+                foreach (var sub in data)
+                {
+                    int subKeysCount = *schema;
+                    schema += 1;
+
+                    int subValuesCount = *schema;
+                    schema += 1;
+
+                    int subCharsIndex = *schema;
+                    schema += 1;
+
+                    char* p_result_chars_each = &p_result_chars[subCharsIndex];
+
+                    *p_result_chars_each = '"';
+                    p_result_chars_each += 1;
+
+
+                    fixed (char* p_subString = sub.Key)
+                    {
+                        // *2 是因为 char 占用2个字节
+                        Buffer.MemoryCopy(p_subString, p_result_chars_each, subKeysCount * 2, subKeysCount * 2);
+                        p_result_chars_each += subKeysCount;
+                    }
+
+                    *p_result_chars_each = '"';
+                    p_result_chars_each += 1;
+
+                    *p_result_chars_each = ':';
+                    p_result_chars_each += 1;
+
+                    *p_result_chars_each = '"';
+                    p_result_chars_each += 1;
+
+
+                    fixed (char* p_subString = sub.Value)
+                    {
+                        // *2 是因为 char 占用2个字节
+                        Buffer.MemoryCopy(p_subString, p_result_chars_each, subValuesCount * 2, subValuesCount * 2);
+                        p_result_chars_each += subValuesCount;
+                    }
+
+                    *p_result_chars_each = '"';
+                    p_result_chars_each += 1;
+
+                    *p_result_chars_each = ',';
+                }
+
+                p_result_chars[0] = '{';
+                p_result_chars[charsCount - 1] = '}';
+
+            }
+
+            return resultString.ToString();
+        }
+
+
+        unsafe string SerializeCollectionNative(IEnumerable<string> subStrings, int length = -1)
+        {
+
+            if (subStrings is null) return "[]";
+
+            int loopCount = 0;
+
+            if (length <= 0)
+            {
+                if (subStrings is Array)
+                    loopCount = (subStrings as string[])!.Length; //数组的长度是天然可以获取的
+                else
+                    loopCount = subStrings.Count(); //外部既不指定长度， 这边内部也检测到它不是数组，这一步就逃不脱了
+            }
+            else
+            {
+                loopCount = length; //外部已知长度
+            }
+
+            if (loopCount <= 0) return "[]";
+
+
+            int* schema = stackalloc int[loopCount*2];
+
+        
+
+            int charsCount = 0; //字符总数量
+
+            foreach (var s in subStrings)
+            {
             
 
-            ReadOnlySpan<char> lineSpan = line;
-            int sourceLength = line.Length;
-            int tempLength = lineSpan.Length + 2;
+                *schema = s.Length;
+                schema += 1;
 
+                *schema = charsCount + 1;
+                schema += 1;
 
-            //结果长度与输入值的长度肯定不一样（最少也要加2），所以不能通过指针修改输入源， 必须做一次临时生成
-            //所幸这是堆内存，会被立即释放
-            char* temp = stackalloc char[tempLength]; //2是首尾两个双引号
+                // 3分别是 两边的双引号和右边再加一个结束符号( 右括号 或 逗号 )
+                charsCount += s.Length + 3;
 
-            *temp = '"';
-            temp += 1;
-
-            fixed (char* p_line = &lineSpan[0])
-            {
-                for (int i = 0; i < sourceLength; i++)
-                {
-                    char* p_line_current = p_line;
-                    
-                    *temp = *p_line_current;
-                    
-                    p_line_current += 1;
-                    temp += 1;
-                }
+            
             }
 
-            *temp = '"';
+            // 强制限制使用的内存容量
+            // 2000000 = 1000 * 1000 * 2 , 按照 unix 计算方法的 2M， 64位系统的栈内存是 4M，
+            // 因为其它进程也需要使用栈内存，这里设定为最大只能使用一半
+            // 不考虑32位系统
 
-            //var resultSpan = new Span<char>(temp, tempLength);
-            //resultSpan.ToString();
+            if (charsCount > 2000000) return "[]";
 
-            return temp;
+
+            charsCount += 1; //左符号 { 或 [
+
+
+            schema -= loopCount * 2; //把指向给复位回去，后面还需要通过自增的形式再次使用这个指针
+
+            Span<char> resultString = stackalloc char[charsCount];
+
+            fixed (char* p_result_chars = &resultString[0])
+            {
+
+                foreach (var sub in subStrings)
+                {
+                    
+                    fixed (char* p_subString = sub)
+                    {
+                        int subCharsCount = *schema;
+                        schema += 1;
+                        int subCharsIndex = *schema;
+                        schema += 1;
+
+                        char* p_result_chars_each = &p_result_chars[subCharsIndex];
+                        
+                        *p_result_chars_each = '"';
+                        p_result_chars_each += 1;
+
+                        // *2 是因为 char 占用2个字节
+                        Buffer.MemoryCopy(p_subString, p_result_chars_each, subCharsCount * 2, subCharsCount * 2);
+                        p_result_chars_each += subCharsCount;
+                        
+
+                        *p_result_chars_each = '"';
+                        p_result_chars_each += 1;
+                        *p_result_chars_each = ',';
+
+                    }
+                }
+
+                p_result_chars[0] = '[';
+                p_result_chars[charsCount - 1] = ']';
+
+            }
+
+            return resultString.ToString();
+
         }
 
 
+        unsafe string serializeObjectRebuild(IEnumerable<KeyValuePair<string, string>> data, int length = -1, int symbolsDefaults = 96)
+        {
+
+            if (data is null) return "{}";
+
+            int loopCount = 0;
+
+            if (length <= 0)
+            {
+                // AOT 可以执行 is 和 as 
+                if (data is Array)
+                    loopCount = (data as KeyValuePair<string, string>[])!.Length; //数组的长度是天然可以获取的
+                else
+                    loopCount = data.Count(); //外部既不指定长度， 这边内部也检测到它不是数组，这一步就逃不脱了
+            }
+            else
+            {
+                loopCount = length; //外部已知长度
+            }
+
+            if (loopCount <= 0) return "{}";
+
+            int setSymbolsDefaultsCount = symbolsDefaults;
+
+            NodeSchema* keySchemas = stackalloc NodeSchema[loopCount];
+            NodeSchema* ValueSchemas = stackalloc NodeSchema[loopCount];
+
+            int* specialSymbolsIndexsOnKey;
+            int* specialSymbolsIndexsOnValue;
+            
+            var subString_current = data.GetEnumerator();
+            
+        Restart:
+
+            int schemaIndex = 0; //为下面的 foreach 循环建立一个下标
+
+            int SpecialKeySymbolsCount = 0; //特殊符号总数量
+            int SpecialValueSymbolsCount = 0;
+
+            int charsCount = 0; //字符总数量, 起始值 1 是因为第 0 位作为左起始符号, { 或 [
+
+            int* p = stackalloc int[setSymbolsDefaultsCount];
+            int* p2 = stackalloc int[setSymbolsDefaultsCount];
+
+            specialSymbolsIndexsOnKey = p;
+            specialSymbolsIndexsOnValue = p2;
+
+
+            while (subString_current.MoveNext())
+            {
+
+                int subKeyLength = subString_current.Current.Key.Length;
+
+                int subValueLength = subString_current.Current.Value.Length;
+
+                int subKeyNewLength = subKeyLength;
+
+                int subValueNewLength = subValueLength;
+
+
+                ReadOnlySpan<char> span_key_sub = subString_current.Current.Key;
+                ReadOnlySpan<char> span_value_sub = subString_current.Current.Value;
+
+
+
+                int special_chars_count_on_key = 0;
+
+                for (int i = 0; i < subKeyLength; i++)
+                {
+                    char k = span_key_sub[i];
+                    
+
+                    if (k == 39 || k == 34 || k == 60 || k == 10  || k == 13 || k == 9 ||  k == 92)
+                    {
+
+                        if (SpecialKeySymbolsCount > setSymbolsDefaultsCount)
+                        {
+                            subString_current.Reset();
+                            setSymbolsDefaultsCount = setSymbolsDefaultsCount * 2;
+                            keySchemas -= schemaIndex;
+                            ValueSchemas -= schemaIndex;
+                            goto Restart;
+                        }
+
+
+                        special_chars_count_on_key += 1;
+                        SpecialKeySymbolsCount += 1;
+
+                        *specialSymbolsIndexsOnKey = i;
+                        specialSymbolsIndexsOnKey += 1;
+
+                        subKeyNewLength -= 1; //原始特殊字符要减去
+
+                        if(k == 39 || k == 34 || k == 60)
+                        {
+                            //6是特殊符号的utf8表示字符串长度， 例如 \u0022 ，它们都是6位长度
+                            subKeyNewLength += 6; //把新utf8字符串长度加进来
+                        }
+                        else
+                        {
+                            //2是特殊符号的转义字符串长度， 例如 \" ，是2位长度
+                            subKeyNewLength += 2; //把新utf8字符串长度加进来
+                        }
+                        
+                    }
+
+                }
+
+
+                int special_chars_count_on_value = 0;
+
+                for (int i = 0; i < subValueLength; i++)
+                {
+                    char v = span_value_sub[i];
+                
+                    if (v == 39 || v == 34 || v == 60 || v == 10  || v == 13 || v == 9 ||  v == 92)
+                    {
+
+                        if (SpecialValueSymbolsCount > setSymbolsDefaultsCount)
+                        {
+                            subString_current.Reset();
+                            setSymbolsDefaultsCount = setSymbolsDefaultsCount * 2;
+                            keySchemas -= schemaIndex;
+                            ValueSchemas -= schemaIndex;
+                            goto Restart;
+                        }
+
+                        special_chars_count_on_value += 1;
+                        SpecialValueSymbolsCount += 1;
+
+                        *specialSymbolsIndexsOnValue = i;
+                        specialSymbolsIndexsOnValue += 1;
+
+                        subValueNewLength -= 1; //原始特殊字符要减去
+
+                        if(v == 39 || v == 34 || v == 60)
+                        {
+                            //6是特殊符号的utf8表示字符串长度， 例如 \u0022 ，它们都是6位长度
+                            subValueNewLength += 6; //把新utf8字符串长度加进来
+                        }
+                        else
+                        {
+                            //2是特殊符号的转义字符串长度， 例如 \" ，是2位长度
+                            subValueNewLength += 2; 
+                        }
+                    }
+
+                }
+
+
+                //===============================================
+
+                keySchemas->SpecialSymbolsCount = special_chars_count_on_key;
+
+                //是否存在特殊字符
+                keySchemas->ExistSpecialSymbols = special_chars_count_on_key > 0;
+
+                keySchemas->subSourceLength = subKeyLength;
+
+                // 往后循环累加下方的 charsCount 新值
+                keySchemas->indexEach = charsCount + 1;
+
+
+                //================================================
+
+
+                ValueSchemas->SpecialSymbolsCount = special_chars_count_on_value;
+
+                //是否存在特殊字符
+                ValueSchemas->ExistSpecialSymbols = special_chars_count_on_value > 0;
+
+                ValueSchemas->subSourceLength = subValueLength;
+
+                // 往后循环累加下方的 charsCount 新值
+                ValueSchemas->indexEach = keySchemas->indexEach + subKeyNewLength +3;
+
+                //===============================================
+
+
+                // 2个3分别是 两边的双引号和右边再加一个结束符号( 右括号 或 逗号 ) 以及 key 和 value 之间的两个双引号以及一个冒号
+                charsCount += subKeyNewLength + subValueNewLength + 3 + 3;
+
+                keySchemas += 1;
+                ValueSchemas += 1;
+                schemaIndex += 1;
+                
+            }
+
+            
+
+            // 强制限制使用的内存容量
+            // 2000000 = 1000 * 1000 * 2 , 按照 unix 计算方法的 2M， 64位系统的栈内存是 4M，
+            // 因为其它进程也需要使用栈内存，这里设定为最大只能使用一半，否则会造成整个进程崩溃
+            // 不考虑32位系统
+
+            if (charsCount > 2000000) return "{}";
+
+            charsCount += 1; //左符号 { 或 [
+
+            specialSymbolsIndexsOnKey -= SpecialKeySymbolsCount; //把指向给复位回去，后面还需要通过自增的形式再次使用这个指针
+            specialSymbolsIndexsOnValue -= SpecialValueSymbolsCount;
+
+            keySchemas -= schemaIndex; //把指向给复位回去，后面还需要通过自增的形式再次使用这个指针
+            ValueSchemas -= schemaIndex;
+
+            Span<char> resultString = stackalloc char[charsCount];
+
+            fixed (char* p_result_chars = &resultString[0])
+            {
+
+                int sub_strings_loop_index = 0;
+
+                foreach (var sub in data)
+                {
+                    NodeSchema* keySchema = &keySchemas[sub_strings_loop_index];
+
+                    NodeSchema* valueSchema = &ValueSchemas[sub_strings_loop_index];
+
+                    delegate*<char*, char*, int*, NodeSchema*, Span<char>, char, int*> d_process = &processSchema;
+
+                    fixed (char* p_subKey = sub.Key)
+                    {
+                        specialSymbolsIndexsOnKey = d_process(p_subKey, p_result_chars, specialSymbolsIndexsOnKey, keySchema, symbolsReplace, ':');
+                    }
+
+                    fixed (char* p_subValue = sub.Value)
+                    {
+                        specialSymbolsIndexsOnValue = d_process(p_subValue, p_result_chars, specialSymbolsIndexsOnValue, valueSchema, symbolsReplace, ',');
+
+                    }
+
+
+                    sub_strings_loop_index += 1;
+                }
+
+                p_result_chars[0] = '{';
+                p_result_chars[charsCount - 1] = '}';
+
+            }
+
+            return resultString.ToString();
+
+        }
+
+
+        
+        static int* processSchema(char* subString, char* p_result_chars, int* specialSymbolsIndexs, NodeSchema* schema, Span<char> symbolsReplace, char endChar)
+        {
+
+            schema->SubString = subString;
+
+                char* p_result_chars_each = &p_result_chars[schema->indexEach];
+
+                *p_result_chars_each = '"';
+                p_result_chars_each += 1;
+
+
+                if (!schema->ExistSpecialSymbols)
+                {
+                    // *2 是因为 char 占用2个字节
+                    Buffer.MemoryCopy(schema->SubString, p_result_chars_each, schema->subSourceLength * 2, schema->subSourceLength * 2);
+                    p_result_chars_each += schema->subSourceLength;
+                    schema->SubString += schema->subSourceLength;
+                }
+                else
+                {
+
+                    
+                    int subStringOddCount = 0; //统计已经处理多少个字符
+
+                    for (int i = 0; i < schema->SpecialSymbolsCount; i++)
+                    {
+                        //如果特殊字符之前存在正常字符，把它们一次性处理完毕
+                        int slice_unsearch = *specialSymbolsIndexs - subStringOddCount; //how much length to the next special symbol
+                        specialSymbolsIndexs += 1;
+
+
+                        if (slice_unsearch > 0)
+                        {
+                        
+                            Buffer.MemoryCopy(schema->SubString, p_result_chars_each, slice_unsearch * 2, slice_unsearch * 2);
+                        
+                            
+                        
+                            p_result_chars_each += slice_unsearch; //上面复制了多少字符，主结果指针跟着移动
+                            schema->SubString += slice_unsearch; //当前段落字符串指针也跟着移动（没关系，这时候只是原始字符串）
+                            subStringOddCount += slice_unsearch;//复制正常字符完毕
+                        }
+
+                        // < ' "
+                        if(*schema->SubString == 34 || *schema->SubString == 39 || *schema->SubString == 60)
+                        {
+                            fixed(char* p_pref = pref)
+                            Buffer.MemoryCopy(p_pref, p_result_chars_each, 8, 8);   //4个char, 每个char占用2个字节
+                            p_result_chars_each += 4;
+
+                            *p_result_chars_each = symbolsReplace[*schema->SubString - 1];
+
+                            p_result_chars_each += 1;
+
+                            *p_result_chars_each = symbolsReplace[*schema->SubString + 1];
+
+                            p_result_chars_each += 1;
+
+
+                            schema->SubString += 1;
+                            subStringOddCount += 1;
+                        }
+                        //  10:\n  13:\r  9:\t  92:\\
+                        else if( *schema->SubString == 10 ||  *schema->SubString == 13 || *schema->SubString == 9 ||   *schema->SubString == 92)
+                        {
+                            
+                            *p_result_chars_each = '\\';
+                            p_result_chars_each += 1;
+
+                            switch (*schema->SubString)
+                            {
+                                case '\n':
+                                    *p_result_chars_each = 'n';
+                                break;
+                                case '\r':
+                                    *p_result_chars_each = 'r';
+                                break;
+                                case '\t':
+                                    *p_result_chars_each = 't';
+                                break;
+                                case '\\':
+                                    *p_result_chars_each = '\\';
+                                break;
+                            }
+                            p_result_chars_each += 1;
+                            
+
+
+                            schema->SubString += 1;
+                            subStringOddCount += 1;
+                        }
+                    }
+
+                    //在处理完所有特殊字符后，还剩余多少正常字符未处理
+                    var least = schema->subSourceLength - subStringOddCount;
+                    if (least > 0)
+                    {
+                        //最后剩余未处理的字符
+                        Buffer.MemoryCopy(schema->SubString, p_result_chars_each, least * 2, least * 2);
+                        p_result_chars_each += least; //上面复制了多少字符，主结果指针跟着移动
+                        schema->SubString += least; //当前段落字符串指针也跟着移动（没关系，这时候只是原始字符串）
+                        subStringOddCount += least;//复制正常字符完毕
+                    }
+
+                }
+
+                *p_result_chars_each = '"';
+                p_result_chars_each += 1;
+                *p_result_chars_each = endChar;
+                
+                p_result_chars_each += 1;
+
+            return specialSymbolsIndexs;
+
+        }
+
+        unsafe string serializeCollectionRebuild(IEnumerable<string> subStrings, int length = -1, int symbolsDefaults = 96)
+        {
+            
+            if (subStrings is null) return "[]";
+
+            int loopCount = 0;
+
+            if (length <= 0)
+            {
+                // AOT 可以执行 is 和 as 
+                if (subStrings is Array)
+                    loopCount = (subStrings as string[])!.Length; //数组的长度是天然可以获取的
+                else
+                    loopCount = subStrings.Count(); //外部既不指定长度， 这边内部也检测到它不是数组，这一步就逃不脱了
+            }
+            else
+            { 
+                loopCount = length; //外部已知长度
+            }
+
+            if(loopCount <= 0) return "[]";
+
+            int setSymbolsDefaultsCount = symbolsDefaults;
+            NodeSchema* schema = stackalloc NodeSchema[loopCount];
+            int* specialSymbolsIndexs;
+            
+            
+            var subString_current = subStrings.GetEnumerator();
+
+
+
+
+        Restart:
+
+            int schemaIndex = 0; //为下面的 foreach 循环建立一个下标
+
+            int SpecialSymbolsCount = 0; //特殊符号总数量
+
+            int charsCount = 0; //字符总数量, 起始值 1 是因为第 0 位作为左起始符号, { 或 [
+
+            int* p = stackalloc int[setSymbolsDefaultsCount];
+
+            specialSymbolsIndexs = p;
+            
+
+            while (subString_current.MoveNext())
+            {
+
+                int subLength = subString_current.Current.Length;
+                int subStringNewLength = subLength;
+                ReadOnlySpan<char> span_sub = subString_current.Current;
+
+
+
+                int special_chars_count_on_current_line = 0;
+
+                for (int i = 0; i < subLength; i++) 
+                {
+                    char c = span_sub[i];
+                    
+                    // < ' "
+                    if (c == 39 || c == 34 || c == 60 || c == 10 || c == 13 || c == 9 ||  c == 92)
+                    {
+
+                        if (SpecialSymbolsCount > setSymbolsDefaultsCount)
+                        {
+                            subString_current.Reset();
+                            setSymbolsDefaultsCount = setSymbolsDefaultsCount * 2;
+                            schema -= schemaIndex;
+                            goto Restart;
+                        }
+                        
+                        special_chars_count_on_current_line += 1;
+                        SpecialSymbolsCount += 1;
+
+                        *specialSymbolsIndexs = i;
+                        specialSymbolsIndexs += 1;
+
+                        subStringNewLength -= 1; //原始特殊字符要减去
+
+                        if(c == 39 || c == 34 || c == 60)
+                        {
+                            //6是特殊符号的utf8表示字符串长度， 例如 \u0022 ，它们都是6位长度
+                            subStringNewLength += 6; //把新utf8字符串长度加进来
+                        }
+                        else
+                        {
+                            //2是特殊符号的转义字符串长度， 例如 \" ，是2位长度
+                            subStringNewLength += 2;
+                        }
+                    }
+
+                }
+
+
+                schema->SpecialSymbolsCount = special_chars_count_on_current_line;
+
+
+                //是否存在特殊字符
+                schema->ExistSpecialSymbols = special_chars_count_on_current_line > 0;
+                
+    
+
+
+                schema->subSourceLength = subLength;
+
+                // 往后循环累加下方的 charsCount 新值
+                schema->indexEach = charsCount + 1;
+
+                // 3分别是 两边的双引号和右边再加一个结束符号( 右括号 或 逗号 )
+                charsCount += subStringNewLength + 3;
+
+                schema += 1;
+                schemaIndex += 1;
+            }
+
+
+
+            // 强制限制使用的内存容量
+            // 2000000 = 1000 * 1000 * 2 , 按照 unix 计算方法的 2M， 64位系统的栈内存是 4M，
+            // 因为其它进程也需要使用栈内存，这里设定为最大只能使用一半，否则会造成整个进程崩溃
+            // 不考虑32位系统
+
+            if (charsCount > 2000000) return "[]";
+
+            charsCount += 1; //左符号 { 或 [
+
+            specialSymbolsIndexs -= SpecialSymbolsCount; //把指向给复位回去，后面还需要通过自增的形式再次使用这个指针
+            schema -= schemaIndex; //把指向给复位回去，后面还需要通过自增的形式再次使用这个指针
+
+            Span<char> resultString = stackalloc char[charsCount];
+
+
+            delegate*<char*,char*, int*, NodeSchema*, Span<char>, char, int*> d_process = &processSchema;
+
+
+            fixed (char* p_result_chars = &resultString[0])
+            {
+                
+                    
+                int sub_strings_loop_index = 0;
+
+                foreach (var sub in subStrings)
+                {
+                    NodeSchema* subSchema = &schema[sub_strings_loop_index];
+
+                    fixed (char* p_subString = sub)
+                    {
+                        specialSymbolsIndexs  = d_process(p_subString, p_result_chars, specialSymbolsIndexs, subSchema, symbolsReplace, ',');
+                    }
+
+                    sub_strings_loop_index += 1;
+                }
+
+                p_result_chars[0] = '[';
+                p_result_chars[charsCount - 1] = ']';
+
+            }
+
+            return resultString.ToString();
+
+        }
+        
     }
 }

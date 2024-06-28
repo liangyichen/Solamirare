@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Solamirare</Title>
-	<VersionPrefix>0.0.14-alpha</VersionPrefix>
+	<VersionPrefix>0.0.16-alpha</VersionPrefix>
 	<Authors>Liang Yichen</Authors>
     <RunAnalyzersDuringBuild>True</RunAnalyzersDuringBuild>
 	<PackageReadmeFile>README.md</PackageReadmeFile>

@@ -59,7 +59,7 @@ namespace Solamirare.Extention
         /// <param name="source"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        public static bool EqualsByChar(this Span<char> source, Span<char> values)
+        public static bool EqualsByChar(this ReadOnlySpan<char> source, Span<char> values)
         {
             var result = false;
             if (values.Length<1) return false;

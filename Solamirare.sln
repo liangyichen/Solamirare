@@ -5,8 +5,6 @@ VisualStudioVersion = 17.9.34723.18
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Solamirare", "Solamirare\Solamirare.csproj", "{1082B8D7-188E-4882-9873-37DBC70A296F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{145B3D35-0194-441D-943C-A8901455CE2B}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestSimpleJsonPerformance", "TestSimpleJsonPerformance\TestSimpleJsonPerformance.csproj", "{4F6EC248-436D-4818-B60F-078F4A8EDDED}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomTest_SimpleJson", "CustomTest_SimpleJson\CustomTest_SimpleJson.csproj", "{0E6FFE16-E4D2-44B2-800E-17D9ED7CB505}"
@@ -23,10 +21,6 @@ Global
 		{1082B8D7-188E-4882-9873-37DBC70A296F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1082B8D7-188E-4882-9873-37DBC70A296F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1082B8D7-188E-4882-9873-37DBC70A296F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{145B3D35-0194-441D-943C-A8901455CE2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{145B3D35-0194-441D-943C-A8901455CE2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{145B3D35-0194-441D-943C-A8901455CE2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{145B3D35-0194-441D-943C-A8901455CE2B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4F6EC248-436D-4818-B60F-078F4A8EDDED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4F6EC248-436D-4818-B60F-078F4A8EDDED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F6EC248-436D-4818-B60F-078F4A8EDDED}.Release|Any CPU.ActiveCfg = Release|Any CPU

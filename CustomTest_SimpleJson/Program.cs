@@ -114,18 +114,18 @@ namespace CustomTest_SimpleJson
                 Stopwatch st2 = Stopwatch.StartNew();
                 st2.Start();
 
-
+                var dicArray = dic.Values.AsEnumerable().ToArray();
 
                 Stopwatch st3 = Stopwatch.StartNew();
                 st3.Start();
 
                 var t2 = "";
                 for (int i = 0; i < loop; i++)
-                    t2 = jsonGeneratorWithPointer.SerializeCollection(dic.Values.AsEnumerable(),dic.Count);
+                    t2 = jsonGeneratorWithPointer.SerializeCollection(dicArray);
 
                 st3.Stop();
 
-                ($"SolamirareJson Collection: " + st3.ElapsedMilliseconds + " ms").PrintToConsole(ConsoleColor.Cyan);
+                ($"SolamirareJson Collection: " + st3.ElapsedMilliseconds + " ms").PrintToConsole(ConsoleColor.Yellow);
 
 
                 Thread.Sleep(1000);
@@ -195,10 +195,10 @@ namespace CustomTest_SimpleJson
 
 
 
-            //如果在vs中通过项目界面编译 Realese ，得到的文件是 Jit 模式，运行时的性能与AOT模式差异也不大，可以作为快速开发时的参考
+            //如果编译 Realese - Jit 模式，运行时的性能与AOT模式差异也不大，可以作为快速开发时的参考
 
 
-            Execute(5, 10, 20, 100);
+            Execute(5, 10,20,50);
 
             Console.ReadLine();
         }

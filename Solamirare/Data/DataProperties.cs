@@ -6,16 +6,8 @@ namespace Solamirare
     /// <summary>
     /// 数据属性（基于一对多用途，它本身不设关联绑定）
     /// </summary>
-   public  record DataProperty
-    {
-        /// <summary>
-        /// 数据属性（基于一对多用途，它本身不设关联绑定）
-        /// </summary>
-        public DataProperty()
-        {
-            Name = string.Empty;
-            Value = string.Empty;
-        }
+   public struct DataProperty
+   {
 
 
         /// <summary>
@@ -27,8 +19,6 @@ namespace Solamirare
         /// 值
         /// </summary>
         public string Value { get; set; }
-
-
-
+        
     }
 }
