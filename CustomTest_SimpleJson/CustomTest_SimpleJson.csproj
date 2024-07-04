@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	  <PublishAot>true</PublishAot>
+
+	  <IsTrimmable>true</IsTrimmable>
+	  <PublishTrimmed>true</PublishTrimmed>
+	  <OptimizationPreference>Speed</OptimizationPreference>
+	  <TrimMode>Link</TrimMode>
+	  <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+	  
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Solamirare\Solamirare.csproj" />
+  </ItemGroup>
+
+</Project>
