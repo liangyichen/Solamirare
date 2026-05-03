@@ -1,0 +1,118 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<RuntimeIdentifiers>osx-arm64</RuntimeIdentifiers>
+    <Title>Solamirare</Title>
+	<VersionPrefix>1.0.0-beta3.1</VersionPrefix>
+	<Authors>Liang Yichen</Authors>
+    <RunAnalyzersDuringBuild>True</RunAnalyzersDuringBuild>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+	<Description>
+		running on .Net 10+, released under the GPL v3 license.
+	</Description>
+	<Copyright>(c) Liang Yichen 2016</Copyright>
+	<PackageTags>.net,Solamirare</PackageTags>
+	<RepositoryUrl>https://github.com/liangyichen/Solamirare</RepositoryUrl>
+	<PackageProjectUrl>https://github.com/liangyichen/Solamirare</PackageProjectUrl>
+	<RepositoryType>git</RepositoryType>
+	<PackageLicenseFile>License.txt</PackageLicenseFile>
+	<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+	<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	<LangVersion>preview</LangVersion>
+</PropertyGroup>
+
+
+
+<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+  <DefineConstants>$(DefineConstants);PLATFORM_MACOS</DefineConstants>
+</PropertyGroup>
+
+<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+  <DefineConstants>$(DefineConstants);PLATFORM_WINDOWS</DefineConstants>
+</PropertyGroup>
+
+<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+  <DefineConstants>$(DefineConstants);PLATFORM_LINUX</DefineConstants>
+</PropertyGroup>
+
+<!-- Debug 模式自动开启协程调试计数，Release 模式零开销 -->
+<PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DefineConstants>$(DefineConstants);COROUTINE_DEBUG</DefineConstants>
+</PropertyGroup>
+
+<Target Name="CompileCoroutineAsm" BeforeTargets="Build">
+  <PropertyGroup>
+    <!-- 汇编源文件路径 -->
+    <AsmSource>$(MSBuildProjectDirectory)/Coroutine/macOS/coroutine_switch_arm64.S</AsmSource>
+    <!-- 中间目标文件路径 -->
+    <AsmObject>$(MSBuildProjectDirectory)/Coroutine/macOS/coroutine_switch_arm64.o</AsmObject>
+    <!-- 输出动态库路径，直接输出到执行目录根目录 -->
+    <DylibOutput>$(OutputPath)libcoroutine.dylib</DylibOutput>
+  </PropertyGroup>
+
+  <!-- 第一步：编译汇编为目标文件 -->
+  <Exec Command="clang -arch arm64 -c &quot;$(AsmSource)&quot; -o &quot;$(AsmObject)&quot;" />
+
+  <!-- 第二步：链接为动态库，直接输出到执行目录 -->
+  <Exec Command="clang -arch arm64 -dynamiclib &quot;$(AsmObject)&quot; -o &quot;$(DylibOutput)&quot;" />
+
+  <!-- 第三步：清理中间目标文件 -->
+  <Delete Files="$(AsmObject)" />
+</Target>
+
+
+
+<Target Name="CompileCoroutineAsm" BeforeTargets="Build;ResolveReferences;Pack"
+        Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">
+  <PropertyGroup>
+    <AsmSource>$(MSBuildProjectDirectory)/Coroutine/macOS/coroutine_switch_arm64.S</AsmSource>
+    <AsmObject>$(MSBuildProjectDirectory)/Coroutine/macOS/coroutine_switch_arm64.o</AsmObject>
+    <!-- 同时输出到两个位置 -->
+    <DylibSource>$(MSBuildProjectDirectory)/Coroutine/macOS/libcoroutine.dylib</DylibSource>
+    <DylibRuntime>$(MSBuildProjectDirectory)/runtimes/osx-arm64/native/libcoroutine.dylib</DylibRuntime>
+  </PropertyGroup>
+
+  <Exec Command="clang -arch arm64 -c &quot;$(AsmSource)&quot; -o &quot;$(AsmObject)&quot;" />
+  <Exec Command="clang -arch arm64 -dynamiclib &quot;$(AsmObject)&quot; -o &quot;$(DylibSource)&quot;" />
+  <Delete Files="$(AsmObject)" />
+
+  <!-- 确保 runtimes 目录存在 -->
+  <MakeDir Directories="$(MSBuildProjectDirectory)/runtimes/osx-arm64/native" />
+
+  <!-- 复制到 runtimes 规范目录，供 NuGet 打包使用 -->
+  <Copy SourceFiles="$(DylibSource)" DestinationFiles="$(DylibRuntime)" />
+</Target>
+
+<ItemGroup Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::OSX)))' == 'true'">
+  <!-- 原有的输出目录复制，供直接引用的项目使用 -->
+  <None Include="Coroutine/macOS/libcoroutine.dylib">
+    <Link>libcoroutine.dylib</Link>
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+
+  <!-- NuGet 打包时放入 runtimes/osx-arm64/native/ 目录 -->
+  <None Include="runtimes/osx-arm64/native/libcoroutine.dylib">
+    <Pack>true</Pack>
+    <PackagePath>runtimes/osx-arm64/native/libcoroutine.dylib</PackagePath>
+  </None>
+</ItemGroup>
+
+<ItemGroup>
+  <None Include="buildTransitive\UnManagedStringAlias.cs"
+        Pack="true"
+        PackagePath="buildTransitive\" />
+</ItemGroup>
+
+<ItemGroup>
+	<None Include="..\README.md" Pack="true" PackagePath="" />
+	<None Include="..\License.txt" Pack="true" PackagePath="" />
+</ItemGroup>
+
+
+</Project>

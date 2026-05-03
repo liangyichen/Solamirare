@@ -1,0 +1,1 @@
+global using UnManagedString = Solamirare.UnManagedMemory<char>;
