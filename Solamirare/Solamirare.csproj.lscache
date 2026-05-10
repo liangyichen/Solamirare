@@ -1,0 +1,599 @@
+version=1
+
+# This file caches language service data to improve the performance of C# Dev Kit.
+# It is not intended for manual editing. It can safely be deleted and will be
+# regenerated automatically.
+#
+# To exclude from version control, add *.lscache to your .gitignore file.
+#
+# To disable caching, add the following to your VS Code settings:
+#   "dotnet.projectsystem.enableLanguageServiceCache": false
+
+[project]
+language=C#
+primary
+lastDtbSucceeded
+
+[properties]
+AssemblyName=Solamirare
+CommandLineArgsForDesignTimeEvaluation=-langversion:preview -define:TRACE;PLATFORM_LINUX;COROUTINE_DEBUG -doc:"obj\Debug/net10.0/Solamirare.xml"
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=14.0
+ProjectAssetsFile=<PATH>obj/project.assets.json
+RootNamespace=Solamirare
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../Solamirare.sln
+TargetFrameworkIdentifier=.NETCoreApp
+TargetPath=<PATH>bin/Debug/net10.0/Solamirare.dll
+TargetRefPath=<PATH>obj/Debug/net10.0/ref/Solamirare.dll
+TemporaryDependencyNodeTargetIdentifier=net10.0
+
+[commandLineArguments]
+/noconfig
+/unsafe+
+/checked-
+/nowarn:1701,1702,1701,1702
+/fullpaths
+/nostdlib+
+/errorreport:prompt
+/warn:10
+/doc:obj/Debug/net10.0/Solamirare.xml
+/define:TRACE;PLATFORM_LINUX;COROUTINE_DEBUG;DEBUG;NET;NET10_0;NETCOREAPP;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NET10_0_OR_GREATER;NETCOREAPP1_0_OR_GREATER;NETCOREAPP1_1_OR_GREATER;NETCOREAPP2_0_OR_GREATER;NETCOREAPP2_1_OR_GREATER;NETCOREAPP2_2_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER
+/highentropyva+
+/nullable:enable
+/features:"InterceptorsNamespaces=;Microsoft.Extensions.Validation.Generated"
+/debug+
+/debug:portable
+/filealign:512
+/optimize-
+/out:obj/Debug/net10.0/Solamirare.dll
+/refout:obj/Debug/net10.0/refint/Solamirare.dll
+/target:library
+/warnaserror-
+/utf8output
+/deterministic+
+/langversion:preview
+/warnaserror+:NU1605,SYSLIB0011
+
+[sourceFiles]
+AsyncWithThread/
+ AsyncCallbackContext.cs
+ AsyncStateOnPosix.cs
+ AsyncStateOnWindows.cs
+ AsyncWithThreadLinux.cs
+ AsyncWithThreadMac.cs
+ AsyncWithThreads.cs
+ AsyncWithThreadsPool.cs
+ AsyncWithThreadWindows.cs
+ PollFd.cs
+ PthreadStructs.cs
+BaseMemoryPool/
+ BaseMemoryPool.cs
+ BaseMemoryPoolUserBlockInfo.cs
+Config/
+ global_using.cs
+ MemoryScaleMode.cs
+ MemoryTypeDefined.cs
+ SolamirareEnvironment.cs
+ SolamirareGlobal.cs
+Data/
+ Replace_Result.cs
+ SerializeResult.cs
+ SerializeResultEnum.cs
+ SerializeTypes.cs
+Deque/CircularDeque.cs
+Functions/
+ RandomNumberGenerator.cs
+ RandomStringGenerator.cs
+ UnmanagedSorter.cs
+GenericLibcs/
+ IOCP/OVERLAPPED.cs
+ IO_URing/
+  iovec.cs
+  io_cqring_offsets.cs
+  io_sqring_offsets.cs
+  io_uring_cqe.cs
+  io_uring_params.cs
+  io_uring_sqe.cs
+GlobalHelper/DebugHelper.cs
+Json/
+ CompactJson.cs
+ CompactResult.cs
+ JsonDocument.cs
+ JsonNode.cs
+ JsonValidator.cs
+ NodeStackFrame.cs
+ ParseResult.cs
+ Simd_ARM.cs
+ Simd_X64.cs
+ SolamirareJsonGenerator.cs
+MemoryChecker/
+ Fingerprint.cs
+ LinuxPointerChecker.cs
+ MacOsPointerChecker.cs
+ MemoryType.cs
+ PointerMemoryChecker.cs
+ WindowsPointerChecker.cs
+Netware/
+ hostent.cs
+ HttpClient/Async/
+  AsyncHttpClient.cs
+  AsyncHttpClientRequestState.cs
+  AsyncLinuxHttpClient.cs
+  AsyncMacOSHttpClient.cs
+  AsyncRequestContext.cs
+  AsyncWindowsHttpClient.cs
+  HttpClientHelper.cs
+  IO_URingRequestContext.cs
+ HttpClient/
+  GenericHttpClientFunctions.cs
+  HttpContentType.cs
+  HttpMethod.cs
+  IO_URingConsts.cs
+  LinuxOpenSSLWrapper.cs
+  MacOSHttpPosixApi.cs
+  MacOSOpenSSLWrapper.cs
+  UrlParts.cs
+  ValueHttpClient.cs
+  ValueHttpResponse.cs
+  ValueRequestData.cs
+  WindowsHttpApi.cs
+  WindowsOpenSSLWrapper.cs
+ HttpServer/
+  AsciiConverter.cs
+  ConnectionMethod.cs
+  ConnectionProtocol.cs
+  FormDataParser.cs
+  HttpConnection.cs
+  HttpContext.cs
+  HttpDateGenerator.cs
+  HttpMimeTypes.cs
+  HttpRequest.cs
+  HttpResponse.cs
+  HttpServerRunning.cs
+  HTTPSeverConfig.cs
+  HttpVersion.cs
+  Linux/
+   EPoolConsts.cs
+   EPoolEvent.cs
+   EPoolServer.cs
+   IoUringLibcs.cs
+   IoUringOptimizationOptions.cs
+   IoUringServer.cs
+   LinuxServerBootstrap.cs
+  MacOS/
+   KQueueEvent64.cs
+   KQueueLibcs.cs
+   MacOSHttpServer.cs
+  ServerFunctions.cs
+  ServerVariables.cs
+  UHttpResponse_Write.cs
+  Windows/
+   WindowsHttpServer.cs
+   WinSockApis.cs
+ sockaddr_bsd.cs
+ sockaddr_in.cs
+ timeval.cs
+obj/Debug/net10.0/
+ .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+ Solamirare.AssemblyInfo.cs
+ Solamirare.GlobalUsings.g.cs
+PoolCluster/
+ MemoryObjectPool.cs
+ MemoryPoolAllocatedResult.cs
+ MemoryPoolFrozenNode.cs
+ MemoryPoolSchema.cs
+ PoolCluster.cs
+SystemAPI/
+ LinuxAPI.cs
+ LinuxKernelVersion.cs
+ LinuxKernelVersionChecker.cs
+ MacOSAPI.cs
+ WindowsAPI.cs
+Threads/
+ NativeThread.cs
+ NativeThreadPool.cs
+ WindowsThreads.cs
+UnManagedCollection/Methods/
+ AsSpan.cs
+ AsUnManagedMemory.cs
+ Clear.cs
+ Clone.cs
+ Contains.cs
+ CopyTo.cs
+ Count.cs
+ EndsWith.cs
+ Equals.cs
+ ForEach.cs
+ GetHashCode.cs
+ implicit.cs
+ Index.cs
+ IndexOf.cs
+ IndexOfAny.cs
+ Iterators.cs.cs
+ LastIndexOf.cs
+ Slice.cs
+ StartsWith.cs
+ StatusCode.cs
+ ToString.cs
+ Transformance.cs
+ Zero.cs
+UnManagedCollection/
+ UnManagedCollection.Chars.cs
+ UnManagedCollection.cs
+UnManagedIO/Async/CallBack/
+ AsyncFilesIOWithCallBack.cs
+ IOCPContextWithCallBack.cs
+ IOCPIOWithCallBack.cs
+ IO_URingContextWithCallBack.cs
+ IO_URingIOWithCallBack.cs
+ LinuxAIOContextWithCallBack.cs
+ LinuxAIOWithCallBack.cs
+ MacOSAIOContextWithCallBack.cs
+ MacOSAIOWithCallBack.cs
+UnManagedIO/Async/
+ IO_URingConsts.cs
+ linux_aiocb.cs
+ macos_aiocb.cs
+ Wait/
+  AsyncFilesIO.cs
+  AsyncFilesIOContext.cs
+  IOCPContext.cs
+  IOCPIO.cs
+  IO_URingContext.cs
+  IO_UringIO.cs
+  LinuxAIO.cs
+  MacOSAIO.cs
+UnManagedIO/
+ Linux_Detector.cs
+ Sync/
+  FileMode.cs
+  ISyncDirectory.cs
+  ISyncFilesIO.cs
+  Linux/
+   ZeroDirectory_Linux.cs
+   ZeroIO_Linux.cs
+  Mac/
+   ZeroDirectory_Mac.cs
+   ZeroIO_Mac.cs
+  OpenFlags.cs
+  Posix_Functions.cs
+  Stat.cs
+  SyncFilesIO.cs
+  Windows/
+   ZeroDirectory_Windows.cs
+   ZeroIO_Windows.cs
+UnManagedMemory/Methods/
+ Add.cs
+ AsSpan.cs
+ AsUnManagedCollection.cs
+ Clear.cs
+ Clone.cs
+ Contains.cs
+ CopyTo.cs
+ Count.cs
+ EnsureCapacity.cs
+ EnsureRemainingCapacity.cs
+ Equals.cs
+ ForEach.cs
+ GetHashCode.cs
+ implicit.cs
+ Index.cs
+ IndexOf.cs
+ IndexOfAny.cs
+ Insert.cs
+ LastIndexOf.cs
+ ReLength.cs
+ Remove.cs
+ Replace.cs
+ Resize.cs
+ Reverse.cs
+ SetAsReadOnly.cs
+ SetValue.cs
+ Slice.cs
+ StartsWith.cs
+ StatusCode.cs
+ ToString.cs
+ Transformance.cs
+ Update.cs
+ Zero.cs
+UnManagedMemory/
+ UnManagedMemoryHelper.cs
+ UnManagedMemory_Base.cs
+ UnManagedMemory_Constructor.cs
+ UnManagedMemory_Constructor_Outer.cs
+ UnManagedMemory_Extension.cs
+ UnManagedMemory_Operator.cs
+ UnManagedString/
+  Convert.cs
+  CopyToBytes.cs
+  CopyToChars.cs
+  EqualIgnoreCase.cs
+  Json.cs
+  UnManagedStringHelper.cs
+ValueDictionary/
+ Dictionary.cs
+ DictionaryEnumerator.cs
+ DictionaryExtension.cs
+ DictionaryMathUtils.cs
+ DictionarySlot.cs
+ DictionaryUtils.cs
+ Dictionary_Iterators.cs
+ Dictonary_FindSlot.cs
+ Methods/
+  Add.cs
+  AddOrUpdate.cs
+  Update.cs
+ValueFrozenStack/Method/
+ Clear.cs
+ Dispose.cs
+ ForEach.cs
+ Iterators.cs
+ Peek.cs
+ Pop.cs
+ Push.cs
+ValueFrozenStack/ValueFrozenStack.cs
+ValueLinkedList/
+ AppendReferences.cs
+ Equals.cs
+ LastIndexOf.cs
+ Method/
+  AdditionMemory.cs
+  Append.cs
+  Clear.cs
+  ClearFreeNodes.cs
+  Contains.cs
+  DeQueueEmptyNode.cs
+  Dispose.cs
+  ForEach.cs
+  Index.cs
+  IndexNode.cs
+  IndexOf.cs
+  IndexOfAny.cs
+  InsertAt.cs
+  LinkToLocalNode.cs
+  Remove.cs
+  Replace.cs
+  SetAsFree.cs
+  TryPop.cs
+  Update.cs
+ ValueLinkedList.cs
+ ValueLiskedListNode.cs
+ValueStack/Method/
+ AddtionMemory.cs
+ AttachSegment.cs
+ Clear.cs
+ Contains.cs
+ Dispose.cs
+ EnsureCapacity.cs
+ FindSegment.cs
+ ForEach.cs
+ Iterators.cs
+ Peek.cs
+ Pop.cs
+ Push.cs
+ Resize.cs
+ ResizeSegmentsTable.cs
+ Spinlock.cs
+ValueStack/
+ StackSegment.cs
+ ValueStack.cs
+ValueTypeHelper/
+ BoyerMoore.cs
+ Equals.cs
+ IndexOf_Short_Bytes.cs
+ MemoryAlignmentHelper.cs
+ ValueTypeHelper.cs
+ Valuetypehelper.searchignorecase.cs
+ ValueTypeHelper_IndexOf.cs
+ ValueTypeHelper_LastIndexOf.cs
+ VectorSearchHelper.cs
+VThread/
+ Coroutine.cs
+ CoroutineDebugInfo.cs
+ CoroutineScheduler.cs
+ CoroutineStack.cs
+ Linux/
+  LinuxCoroutine.cs
+  LinuxCoroutineContext.cs
+  LinuxCoroutineScheduler.cs
+  LinuxCoroutineStack.cs
+  LinuxCoroutineTrampolineArgs.cs
+ macOS/
+  MacOSCoroutine.cs
+  MacOSCoroutineContext.cs
+  MacOSCoroutineScheduler.cs
+  MacOSCoroutineStack.cs
+  MacOSPlatformSwitch.cs
+ Windows/
+  WindowsCoroutine.cs
+  WindowsCoroutineContext.cs
+  WindowsCoroutineScheduler.cs
+  WindowsCoroutineStack.cs
+
+[metadataReferences]
+../../../../../../usr/lib64/dotnet/packs/Microsoft.NETCore.App.Ref/10.0.4/ref/net10.0/
+ Microsoft.CSharp.dll
+ Microsoft.VisualBasic.Core.dll
+ Microsoft.VisualBasic.dll
+ Microsoft.Win32.Primitives.dll
+ Microsoft.Win32.Registry.dll
+ mscorlib.dll
+ netstandard.dll
+ System.AppContext.dll
+ System.Buffers.dll
+ System.Collections.Concurrent.dll
+ System.Collections.dll
+ System.Collections.Immutable.dll
+ System.Collections.NonGeneric.dll
+ System.Collections.Specialized.dll
+ System.ComponentModel.Annotations.dll
+ System.ComponentModel.DataAnnotations.dll
+ System.ComponentModel.dll
+ System.ComponentModel.EventBasedAsync.dll
+ System.ComponentModel.Primitives.dll
+ System.ComponentModel.TypeConverter.dll
+ System.Configuration.dll
+ System.Console.dll
+ System.Core.dll
+ System.Data.Common.dll
+ System.Data.DataSetExtensions.dll
+ System.Data.dll
+ System.Diagnostics.Contracts.dll
+ System.Diagnostics.Debug.dll
+ System.Diagnostics.DiagnosticSource.dll
+ System.Diagnostics.FileVersionInfo.dll
+ System.Diagnostics.Process.dll
+ System.Diagnostics.StackTrace.dll
+ System.Diagnostics.TextWriterTraceListener.dll
+ System.Diagnostics.Tools.dll
+ System.Diagnostics.TraceSource.dll
+ System.Diagnostics.Tracing.dll
+ System.dll
+ System.Drawing.dll
+ System.Drawing.Primitives.dll
+ System.Dynamic.Runtime.dll
+ System.Formats.Asn1.dll
+ System.Formats.Tar.dll
+ System.Globalization.Calendars.dll
+ System.Globalization.dll
+ System.Globalization.Extensions.dll
+ System.IO.Compression.Brotli.dll
+ System.IO.Compression.dll
+ System.IO.Compression.FileSystem.dll
+ System.IO.Compression.ZipFile.dll
+ System.IO.dll
+ System.IO.FileSystem.AccessControl.dll
+ System.IO.FileSystem.dll
+ System.IO.FileSystem.DriveInfo.dll
+ System.IO.FileSystem.Primitives.dll
+ System.IO.FileSystem.Watcher.dll
+ System.IO.IsolatedStorage.dll
+ System.IO.MemoryMappedFiles.dll
+ System.IO.Pipelines.dll
+ System.IO.Pipes.AccessControl.dll
+ System.IO.Pipes.dll
+ System.IO.UnmanagedMemoryStream.dll
+ System.Linq.AsyncEnumerable.dll
+ System.Linq.dll
+ System.Linq.Expressions.dll
+ System.Linq.Parallel.dll
+ System.Linq.Queryable.dll
+ System.Memory.dll
+ System.Net.dll
+ System.Net.Http.dll
+ System.Net.Http.Json.dll
+ System.Net.HttpListener.dll
+ System.Net.Mail.dll
+ System.Net.NameResolution.dll
+ System.Net.NetworkInformation.dll
+ System.Net.Ping.dll
+ System.Net.Primitives.dll
+ System.Net.Quic.dll
+ System.Net.Requests.dll
+ System.Net.Security.dll
+ System.Net.ServerSentEvents.dll
+ System.Net.ServicePoint.dll
+ System.Net.Sockets.dll
+ System.Net.WebClient.dll
+ System.Net.WebHeaderCollection.dll
+ System.Net.WebProxy.dll
+ System.Net.WebSockets.Client.dll
+ System.Net.WebSockets.dll
+ System.Numerics.dll
+ System.Numerics.Vectors.dll
+ System.ObjectModel.dll
+ System.Reflection.DispatchProxy.dll
+ System.Reflection.dll
+ System.Reflection.Emit.dll
+ System.Reflection.Emit.ILGeneration.dll
+ System.Reflection.Emit.Lightweight.dll
+ System.Reflection.Extensions.dll
+ System.Reflection.Metadata.dll
+ System.Reflection.Primitives.dll
+ System.Reflection.TypeExtensions.dll
+ System.Resources.Reader.dll
+ System.Resources.ResourceManager.dll
+ System.Resources.Writer.dll
+ System.Runtime.CompilerServices.Unsafe.dll
+ System.Runtime.CompilerServices.VisualC.dll
+ System.Runtime.dll
+ System.Runtime.Extensions.dll
+ System.Runtime.Handles.dll
+ System.Runtime.InteropServices.dll
+ System.Runtime.InteropServices.JavaScript.dll
+ System.Runtime.InteropServices.RuntimeInformation.dll
+ System.Runtime.Intrinsics.dll
+ System.Runtime.Loader.dll
+ System.Runtime.Numerics.dll
+ System.Runtime.Serialization.dll
+ System.Runtime.Serialization.Formatters.dll
+ System.Runtime.Serialization.Json.dll
+ System.Runtime.Serialization.Primitives.dll
+ System.Runtime.Serialization.Xml.dll
+ System.Security.AccessControl.dll
+ System.Security.Claims.dll
+ System.Security.Cryptography.Algorithms.dll
+ System.Security.Cryptography.Cng.dll
+ System.Security.Cryptography.Csp.dll
+ System.Security.Cryptography.dll
+ System.Security.Cryptography.Encoding.dll
+ System.Security.Cryptography.OpenSsl.dll
+ System.Security.Cryptography.Primitives.dll
+ System.Security.Cryptography.X509Certificates.dll
+ System.Security.dll
+ System.Security.Principal.dll
+ System.Security.Principal.Windows.dll
+ System.Security.SecureString.dll
+ System.ServiceModel.Web.dll
+ System.ServiceProcess.dll
+ System.Text.Encoding.CodePages.dll
+ System.Text.Encoding.dll
+ System.Text.Encoding.Extensions.dll
+ System.Text.Encodings.Web.dll
+ System.Text.Json.dll
+ System.Text.RegularExpressions.dll
+ System.Threading.AccessControl.dll
+ System.Threading.Channels.dll
+ System.Threading.dll
+ System.Threading.Overlapped.dll
+ System.Threading.Tasks.Dataflow.dll
+ System.Threading.Tasks.dll
+ System.Threading.Tasks.Extensions.dll
+ System.Threading.Tasks.Parallel.dll
+ System.Threading.Thread.dll
+ System.Threading.ThreadPool.dll
+ System.Threading.Timer.dll
+ System.Transactions.dll
+ System.Transactions.Local.dll
+ System.ValueTuple.dll
+ System.Web.dll
+ System.Web.HttpUtility.dll
+ System.Windows.dll
+ System.Xml.dll
+ System.Xml.Linq.dll
+ System.Xml.ReaderWriter.dll
+ System.Xml.Serialization.dll
+ System.Xml.XDocument.dll
+ System.Xml.XmlDocument.dll
+ System.Xml.XmlSerializer.dll
+ System.Xml.XPath.dll
+ System.Xml.XPath.XDocument.dll
+ WindowsBase.dll
+
+[analyzerReferences]
+../../../../../../usr/lib64/dotnet/packs/Microsoft.NETCore.App.Ref/10.0.4/analyzers/dotnet/cs/
+ Microsoft.Interop.ComInterfaceGenerator.dll
+ Microsoft.Interop.JavaScript.JSImportGenerator.dll
+ Microsoft.Interop.LibraryImportGenerator.dll
+ Microsoft.Interop.SourceGeneration.dll
+ System.Text.Json.SourceGeneration.dll
+ System.Text.RegularExpressions.Generator.dll
+../../../../../../usr/lib64/dotnet/sdk/10.0.104/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+
+[analyzerConfigFiles]
+../../../../../../usr/lib64/dotnet/sdk/10.0.104/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_10_default.globalconfig
+obj/Debug/net10.0/Solamirare.GeneratedMSBuildEditorConfig.editorconfig

@@ -1,0 +1,570 @@
+
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
+namespace Solamirare.Tests
+{
+
+  public static unsafe partial class Json_Test
+  {
+
+    static string decodeSource1 = """
+        {
+            "project_name"  : "SolamirareZeroGC",
+            "version"  : 1.5,
+            "is_active"  : true,
+            "last_update": "2024-05-18T10:30:00Z",
+            "configurations": [
+                {
+                "id": "A1",
+                "priority": 100,
+                "settings"       : {
+                    "max_threads": 64,
+                    "timeout_ms"  : 1500.5,
+                    "enabled_features": [
+                    "OPTIMIZATION",
+                    "REPORTING",
+                    "LOGGING"
+                    ]
+                },
+                "metadata": null
+                },
+                {
+                "id": "B2",
+                "priority": 200,
+                "settings": {
+                    "max_threads": 128,
+                    "timeout_ms": 5000.0,
+                    "enabled_features": []
+                }
+                }
+            ],
+            "performance_metrics": {
+                "latency": 0.0000000001,
+                "throughput": 1000000000,
+                "max_memory": 4096000000,
+                "cache_hit_ratio": 0.9999999999999999 // 极长数字
+            }
+            }
+        """;
+
+    static string decodeSource2 = """
+        
+                
+        {
+        "test_id": "T002",
+        "description": "测试字符串和转义字符",
+        "data_types": [
+            "String",
+            1.23,
+            true,
+            null
+        ],
+        "string_tests": {
+            "key_with_space"  : "Value with spaces, tabs:\t and newlines:\n and carriage returns:\r",
+            "special_chars"  : "这是一个Unicode字符：\\u4e2d\\u6587",
+            "escaped_quotes": "包含 \"双引号\" 和 \\反斜杠\\ 的 \"字符串\"",
+            "empty_string": "",
+            "long_path"  : "C:\\Program Files\\Example\\Data.json"
+        },
+        "sparse_array": [
+            1,
+            null,
+            3,
+            null,
+            5,
+            "last"
+        ],
+        "negative_zero": -0.0
+        }
+        
+        
+        """;
+
+    static string decodeSource3 = """
+        
+        {
+            "big_integers": {
+                "max_long": 9223372036854775807,
+                "min_long": -9223372036854775808,
+                "big_int": 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+                    
+        """;
+
+
+    static string decodeSource4 = """
+                
+        [
+        {
+            "id": 1,
+            "__type__": "User",
+            "details": {
+            "name": "Jane Doe",
+            "email": "jane@example.com",
+            "login_history": [
+                {"ts": 1600000000, "ip": "192.168.1.1"},
+                {"ts": 1600000000, "ip": "10.0.0.2"}
+            ]
+            },
+            "preferences": {}
+        },
+        {
+            "id": 2,
+            "__type__": "Admin",
+            "details": {
+            "name": "John Smith",
+            "email": "john@admin.com",
+            "login_history": []
+            },
+            "access_levels": [5, 10, 15]
+        },
+        {
+            "id": 3,
+            "__type__": "Guest",
+            "details": {
+            "name": "Anonymous",
+            "email": null,
+            "login_history": null
+            }
+        }
+        ]
+        
+        """;
+
+
+
+    static string decodeSource5 = //浅层广度与数字边界, 侧重于数字解析的精确性（包括科学计数法）和日期字符串的兼容性。
+"""
+{
+"id": 1001,
+"isActive": true,
+"balance": -1234.567e-2,
+"lastLogin": "2025-10-07T14:30:00Z",
+"settings": {
+    "theme": "dark",
+    "notifications": true
+},
+"dataPoints": [
+    0,
+    1e+10,
+    -0.0001,
+    999999999999999.9
+],
+"description": "This is a simple document with mixed data types and edge case numbers."
+}
+""";
+
+
+    static string decodeSource6 = //深层嵌套与稀疏数组, 测试 栈 (_parentStack) 在达到最大深度时的性能和准确性，并包含一个稀疏数组来测试 null 值的处理。
+    """
+{
+    "root": {
+        "level1_array": [
+            {
+                "level2_obj": {
+                    "key3": "Value at Level 3",
+                    "deep_nesting": {
+                        "level4_arr": [
+                            101,
+                            {
+                                "level5_obj": {
+                                    "key6": "deepest_value"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        ],
+        "sparse_data": [
+            "start",
+            null,
+            null,
+            42,
+            null,
+            true,
+            null,
+            "end"
+        ]
+    },
+    "timestamp": 1665158400,
+    "configName": "DeepNestTest"
+}
+""";
+
+    static string decodeSource7 =
+    """
+{"empty_key": ""}
+""";
+
+
+    static string decodeSource8 =
+    """
+{
+  "TID": "C003",
+  "meta_info": {
+    "version": 1.5,
+    "last_updated": "2024-10-07T12:00:00Z",
+    "status": "active"
+  },
+  "data_payload": [
+    {
+      "id": 1001,
+      "type": "event",
+      "value": 1.2345e+100,
+      "description": "Long number in scientific notation."
+    },
+    {
+      "id": 1002,
+      "type": "control",
+      "value": "Value with line breaks\n and control chars\t and unicode \u2764",
+      "description": "Testing \\n, \\t, and \\u."
+    }
+  ],
+  "nested_structure_test": {
+    "level_1": {
+      "level_2": {
+        "level_3": {
+          "level_4": {
+            "level_5": {
+              "level_6": {
+                "depth_7_ok": true
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "edge_cases": {
+    "key_with_empty_string_value": "",
+    "boolean_value": false,
+    "null_value": null,
+    "integer_value": 9007199254740991,
+    "empty_array": [],
+    "empty_object": {}
+  },
+  "string_and_key_test": {
+    "key_with_colon:": "Value with double quotes: \" and escaped backslash: \\\\",
+    "key_with_unicode": "测试值：你好"
+  }
+}
+""";
+
+
+    static string decodeSource9 =
+    """
+{
+  "challenge_id": "P004_ULTRA",
+  "data_width_test": {
+    "key1": 1,
+    "key2": 2,
+    "key3": 3,
+    "key4": 4,
+    "key5": 5,
+    "key6": 6,
+    "key7": 7,
+    "key8": 8,
+    "key9": 9,
+    "key10": 10,
+    "key11": 11,
+    "key12": 12,
+    "key13": 13,
+    "key14": 14,
+    "key15": 15
+  },
+  "depth_7_boundary": {
+    "level_1": {
+      "level_2": {
+        "level_3": {
+          "level_4": {
+            "level_5": {
+              "level_6": {
+                "depth_7_array": [
+                  "Reached max depth boundary",
+                  -1.23456e-100,
+                  {
+                    "final_level_8": "This should be the deepest node."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "numerical_extremes": {
+    "oversize_integer": 18446744073709551616,
+    "near_zero_float": 0.0000000000000001,
+    "negative_exponent": -6.022e-23
+  },
+  "string_and_null_edge_cases": {
+    "key_with_escaped_quotes": "\"\"\"TestKey\"\"\"",
+    "key_with_nul_value": null,
+    "value_with_emoji": "这是一个表情符号：😂👍",
+    "key_that_is_very_long_to_test_heap_allocation_and_copy_efficiency_in_key_field": "This is the value for the very long key."
+  },
+  "array_of_all_types": [
+    {},
+    [],
+    "string",
+    123,
+    true,
+    false,
+    null,
+    ""
+  ]
+}
+""";
+
+    static string decodeSource10 =
+    """
+{
+  "id": "P005_LEXICAL_ULTRA",
+  "all_standard_escapes_test": {
+    "escapes": "所有的转义字符都在这里：\t (Tab), \n (Newline), \r (Return), \f (Form Feed), \b (Backspace), \\ (Backslash), \" (Double Quote), \/ (Solidus)",
+    "surrogate_pair": "UTF-16 代理对（笑脸）：\uD83D\uDE0A",
+    "mixed_unicode": "混合多字节和单字节：你好，世界！😊"
+  },
+  "number_boundary_test": {
+    "zero_forms": [0, -0.0, 0e1],
+    "max_precision_and_size": 1.0000000000000001,
+    "exp_notation": -1.23456789e-200,
+    "oversize_integer_capture": 123456789012345678901234567890
+  },
+  "literal_edge_cases": {
+    "true_literal": true,
+    "false_literal": false,
+    "null_literal": null,
+    "string_is_true": "\"true\"",
+    "string_is_null": "\"null\""
+  },
+  "empty_and_proximity_stress": {
+    "array_of_empty": [
+      {},
+      [],
+      "",
+      null
+    ],
+    "nested_zero_depth": {
+      "empty1": {},
+      "empty2": [],
+      "empty3": [
+        {}
+      ]
+    },
+    "key_with_empty_value": ""
+  },
+  "key_with_embedded_literals": {
+    "key_contains_true": "Value",
+    "key_contains_false": "Value",
+    "key_contains_null": "Value"
+  }
+}
+""";
+
+
+
+    public static bool TestRoundTripCorrectness(ReadOnlySpan<char> rawJson)
+    {
+      bool result = false;
+
+      JsonDocument doc = new JsonDocument(rawJson, 16);
+
+      if (doc.Root == null || doc.Root->Type == JsonSerializeTypes.Undefined)
+      {
+        goto RETURN;
+      }
+
+      UnManagedCollection<char> actualSerializedJson = doc.Serialize();
+
+      // 为原始 JSON 的压缩分配临时缓冲区
+      char* tempBuffer1 = (char*)NativeMemory.Alloc((nuint)rawJson.Length * sizeof(char));
+
+      UnManagedCollection<char> originalCompact = JsonDocument.CompactJson(rawJson, tempBuffer1).CompactedData;
+
+      result = originalCompact.Equals(actualSerializedJson);
+
+      NativeMemory.Free(tempBuffer1);
+
+    RETURN:
+
+      result = result && doc.ParseSuccess;
+
+      doc.Dispose();
+
+      return result;
+    }
+
+    public static bool BaseDecode()
+    {
+      bool b1 = TestRoundTripCorrectness(decodeSource1);
+      bool b2 = TestRoundTripCorrectness(decodeSource2); // <---- 在BenchmarkDotNet 中运行失败，
+      bool b3 = TestRoundTripCorrectness(decodeSource3); //没有正确关闭，结果是 false
+      bool b4 = TestRoundTripCorrectness(decodeSource4);
+      bool b5 = TestRoundTripCorrectness(decodeSource5);
+      bool b6 = TestRoundTripCorrectness(decodeSource6); //需要把 depth 调大， 16下面是 true
+      bool b7 = TestRoundTripCorrectness(decodeSource7);
+      bool b8 = TestRoundTripCorrectness(decodeSource8);
+      bool b9 = TestRoundTripCorrectness(decodeSource9);
+      bool b10 = TestRoundTripCorrectness(decodeSource10);
+
+      bool result = b1 && b2 && !b3 && b4 && b5 && b6 && b7 && b8 && b9 && b10;
+
+      return result;
+    }
+
+
+    public static bool DocumentToString()
+    {
+
+      JsonDocument doc = new JsonDocument();
+
+
+      doc.AddChild("name", "John", JsonSerializeTypes.String);
+      doc.AddChild("age", "1", JsonSerializeTypes.Number);
+      doc.AddChild("age", "2", JsonSerializeTypes.Number);
+      doc.AddChild("age", "3", JsonSerializeTypes.Number);
+      doc.AddChild("age", "4", JsonSerializeTypes.Number);
+      doc.AddChild("age", "5", JsonSerializeTypes.String);
+      doc.AddChild("age", "6", JsonSerializeTypes.Number);
+
+
+      UnManagedMemory<char> exportedJson = doc.Serialize();
+
+      exportedJson.Equals("""{"name":"John","age":1,"age":2,"age":3,"age":4,"age":"5","age":6}""");
+
+      exportedJson.Dispose();
+      doc.Dispose();
+
+      return true;
+    }
+
+
+    static string jsonSource = """{"age":"100","str":"str-value","id":"999","number":"999.777","enable":"true","disabled":"false"}""";
+
+
+
+    public static bool ObjectStringToDictionary()
+    {
+
+      UnManagedMemory<char> mem = jsonSource.CopyToChars();
+
+      Debug.WriteLine(mem);
+
+      ValueDictionary<UnManagedMemory<char>, UnManagedMemory<char>> dic
+                = new ValueDictionary<UnManagedMemory<char>, UnManagedMemory<char>>();
+
+      JsonFlatProcessor.DecodeObjectString_AppendToDictionary(mem, &dic);
+
+
+
+      bool result = !dic.IsEmpty;
+
+      foreach (DictionarySlot<UnManagedMemory<char>, UnManagedMemory<char>>* i in dic)
+      {
+        UnManagedMemory<char> _key = i->Key;
+        UnManagedMemory<char> _value = i->Value;
+
+        Debug.WriteLine($"key:{_key}, value:{_value}");
+      }
+
+
+      foreach (DictionarySlot<UnManagedMemory<char>, UnManagedMemory<char>>* i in dic)
+      {
+        i->Key.Dispose();
+        i->Value.Dispose();
+      }
+
+      mem.Dispose();
+
+      return result;
+    }
+
+    static string jsonCollectionSource = """["abc","def","ghi"]""";
+
+    public static bool CollectionDecode()
+    {
+
+      UnManagedMemory<UnManagedMemory<char>> mem = jsonCollectionSource.JsonCollectionDecode();
+
+      bool result = !mem.IsEmpty;
+
+      foreach (var i in mem)
+      {
+        i->Dispose();
+      }
+
+      mem.Dispose();
+
+      return result;
+    }
+
+
+
+
+    static void _large_files_enumerable(ReadOnlySpan<char> parentPath, UnManagedMemory<char>* filename, void* tempData)
+    {
+      char* item_path_buffer = stackalloc char[1024];
+
+      ValueFilesIO.CombinePaths(parentPath, filename->AsSpan(), item_path_buffer, out int item_path_len);
+
+      Span<char> span_item_path_buffer = new Span<char>(item_path_buffer, item_path_len);
+
+      UnManagedMemory<char> fileContent = ValueFilesIO.ReadTextFile(span_item_path_buffer);
+
+      ValueLinkedList<UnManagedMemory<char>>* container = (ValueLinkedList<UnManagedMemory<char>>*)tempData;
+
+      container->Append(&fileContent);
+    }
+
+
+
+    /// <summary>
+    /// 测试大型文件的序列化与反序列化还原（单字符串）
+    /// </summary>
+    /// <returns></returns>
+    public static bool LargeFiles()
+    {
+
+      char* path_buffer = stackalloc char[1024];
+
+      ValueFilesIO.CombinePaths(AppDomain.CurrentDomain.BaseDirectory, "txtfiles", path_buffer, out int path_length);
+
+      Span<char> span_path_buffer = new Span<char>(path_buffer, path_length);
+
+      ValueLinkedList<UnManagedMemory<char>> _temp_large_files_datas = new ValueLinkedList<UnManagedMemory<char>>();
+
+      ValueFilesIO.FilesContentsFromDirectory(span_path_buffer, &_large_files_enumerable, &_temp_large_files_datas);
+
+      for (int i = 0; i < _temp_large_files_datas.NodesCount; i++)
+      {
+        UnManagedMemory<char>* item_0 = _temp_large_files_datas.Index(i);
+
+        UnManagedMemory<char> series_pointer = JsonFlatProcessor.SerializeString(item_0);
+
+        JsonFlatProcessor.DecodeJsonString(&series_pointer);
+
+        bool success = series_pointer.Equals(item_0->AsSpan());
+
+        series_pointer.Dispose();
+
+        if (!success)
+        {
+          _temp_large_files_datas.Dispose();
+          return false;
+        }
+      }
+
+      _temp_large_files_datas.Dispose();
+
+      return true;
+    }
+
+
+
+
+
+  }
+}
