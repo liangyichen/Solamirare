@@ -1,0 +1,20 @@
+关于 Guid 特性的说明
+
+- 示例:  [Guid("9ED54F84-A89D-0000-0000-000000000000")]
+
+-- 9ED54F84-A89D-表示 Solamirare 命名空间的下属元素
+-- 0000-0000 表示这是 UnManagedMemory 类型
+-- -000000000000 计划预留用作版本号识别，目前没有用途
+
+
+- 关于各种类型
+
+-- 0000-0000 表示 UnManagedMemory 类型
+-- 0000-0001 表示 ValueQueue 类型，已经删除
+-- 0000-0002 表示 ValueLinkedList 类型
+-- 0000-0003 表示 ValueDictionary 类型
+-- 0000-0004 表示 ValueFrozenDictionary 类型
+-- 0000-0005 表示 UnManagedCollection 类型
+-- 0000-0006 表示 ValueFrozenStack 类型
+
+
