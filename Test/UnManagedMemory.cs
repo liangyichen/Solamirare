@@ -464,6 +464,24 @@ public unsafe class UnManagedMemory
         Assert.True(result);
     }
 
+
+    [Fact]
+    public void FirstOrDefault()
+    {
+        bool result = UnamangedMemory_Test.FirstOrDefault();
+
+        Assert.True(result);
+    }
+
+
+    [Fact]
+    public void Where()
+    {
+        bool result = UnamangedMemory_Test.Where();
+
+        Assert.True(result);
+    }
+
     [Fact]
     public void HashCode()
     {

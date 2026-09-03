@@ -1826,10 +1826,6 @@ public static unsafe class UnamangedMemory_Test
 
         bool o_isEmpty = memory.IsEmpty;
 
-
-
-
-
         //=====================================================
 
         //随意做一些操作，改变对象的状态
@@ -1857,8 +1853,8 @@ public static unsafe class UnamangedMemory_Test
     /// <returns></returns>
     public static bool HashCode()
     {
-        var m1 = new UnManagedMemory<char>("abcdefg");
-        var m2 = new UnManagedMemory<char>("abcdefg");
+        UnManagedString m1 = new UnManagedMemory<char>("abcdefg");
+        UnManagedString m2 = new UnManagedMemory<char>("abcdefg");
 
         int hashcode1 = m1.GetHashCode();
         int hashcode2 = m2.GetHashCode();
@@ -1871,6 +1867,112 @@ public static unsafe class UnamangedMemory_Test
         return result;
 
     }
+
+
+
+    public struct MyStruct
+    {
+        public int Id;
+    }
+
+
+    public static bool Where()
+    {
+        UnManagedMemory<MyStruct> collection_0 = new UnManagedMemory<MyStruct>();
+
+        collection_0.Add(new MyStruct { Id = 1 });
+        collection_0.Add(new MyStruct { Id = 10 });
+        collection_0.Add(new MyStruct { Id = 10 });
+        collection_0.Add(new MyStruct { Id = 10 });
+        collection_0.Add(new MyStruct { Id = 11 });
+
+
+        static bool IsId10(MyStruct* value)
+        {
+            return value->Id == 10;
+        }
+
+        WhereQuery<MyStruct> _where = collection_0.Where(&IsId10);
+
+        bool result = _where.Any();
+
+        UnManagedMemory<MyStruct> memory = _where.CopyToMemory();
+
+        int count = 0;
+
+        while (_where.MoveNext())
+        {
+            MyStruct* user = _where.Current;
+            
+            count += 1;
+        }
+
+        result = result && count == 3;
+
+        count = 0;
+
+        _where.Reset(); //必须重置迭代器之后才能进行下一次遍历
+
+        while (_where.MoveNext()) //再次遍历，测试迭代器的正确性
+        {
+            MyStruct* user = _where.Current;
+            
+            count += 1;
+        }
+
+        collection_0.Dispose();
+
+        result = result && count == 3 && memory.UsageSize == 3;
+
+        memory.Dispose();
+
+        return result;
+    }
+
+
+    public static bool FirstOrDefault()
+    {
+        UnManagedMemory<MyStruct> collection_0 = new UnManagedMemory<MyStruct>();
+
+        collection_0.Add(new MyStruct { Id = 1 });
+        collection_0.Add(new MyStruct { Id = 10 });
+        collection_0.Add(new MyStruct { Id = 11 });
+
+
+        static bool IsId10(MyStruct* value)
+        {
+            return value->Id == 10;
+        }
+
+
+        MyStruct* i = collection_0.FirstOrDefault(&IsId10);
+
+        bool result = i is not null;
+
+        collection_0.Dispose();
+
+
+        UnManagedMemory<int> collection_1 = new UnManagedMemory<int>();
+
+
+
+        collection_1.Add(1);
+        collection_1.Add(10);
+        collection_1.Add(11);
+
+        int* result_1 = collection_1.FirstOrDefault(10);
+
+        result = result && result_1 is not null && *result_1 == 10;
+
+        collection_1.Dispose();
+
+        return result;
+
+    }
+
+
+
+
 
 
 
@@ -1917,7 +2019,7 @@ public static unsafe class UnamangedMemory_Test
 
         UnManagedMemory<char> origion1 = new UnManagedMemory<char>();
 
- 
+
 
 
 
@@ -1931,7 +2033,7 @@ public static unsafe class UnamangedMemory_Test
 
         origion1.Capacity == clone1.Capacity &&
 
-        origion1.UsageSize == clone1.UsageSize && 
+        origion1.UsageSize == clone1.UsageSize &&
 
 
         origion1.OnStack == clone1.OnStack &&

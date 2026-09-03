@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Title>Solamirare</Title>
-	<VersionPrefix>1.0.0-beta4.5.24</VersionPrefix>
+	<VersionPrefix>1.0.0-beta4.5.25</VersionPrefix>
 	<Authors>Liang Yichen</Authors>
     <RunAnalyzersDuringBuild>True</RunAnalyzersDuringBuild>
 	<PackageReadmeFile>README.md</PackageReadmeFile>

@@ -7,50 +7,54 @@ namespace Solamirare;
 public unsafe static partial class ValueTypeHelper
 {
 
-    /// <summary>
-    /// 与指定的内存段比较，值是否相等
-    /// </summary>
-    /// <param name="a"></param>
-    /// <param name="sizeA"></param>
-    /// <param name="b"></param>
-    /// <param name="sizeB"></param>
-    /// <returns></returns>
-    public static bool Equals<T>(T* a, uint sizeA, T* b, uint sizeB)
-    where T : unmanaged
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool Equals<T>(T* a, T* b)
+        where T : unmanaged
     {
+        return Equals(
+            GetBytesPointer(a),
+            GetBytesPointer(b),
+            sizeof(T));
+    }
 
-        if (a is null || b is null) return sizeA == 0 && sizeB == 0;
-        if (sizeB == 0) return true;
-        if (sizeA != sizeB) return false;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool Equals<T>(T* a, T* b, uint size)
+        where T : unmanaged
+    {
+        return Equals(
+            GetBytesPointer(a),
+            GetBytesPointer(b),
+            sizeof(T) * (int) size);
+    }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static bool Equals(
+        byte* a,
+        byte* b,
+        int lengthBytes)
+    {
+        if (a is null || b is null)
+            return a == b;
 
-        byte* p1 = GetBytesPointer(a);
-        byte* p2 = GetBytesPointer(b);
-
-        int lengthBytes = sizeof(T) * (int)sizeB;
-
-        // 1. 极短路径（L <= 32 字节）：最快出口，无冗余检查
         if (lengthBytes <= 32)
-            return SequenceEqual_ShortPath(p1, p2, lengthBytes);
+            return SequenceEqual_ShortPath(a, b, lengthBytes);
 
-
-        // 2. 长路径预检 (仅 lengthBytes > 32 时执行)
-
-        // 2a. 首尾检测 (单分支退出)
-        if (p1[0] != p2[0] || p1[lengthBytes - 1] != p2[lengthBytes - 1])
+        if (a[0] != b[0] || a[lengthBytes - 1] != b[lengthBytes - 1])
             return false;
 
-        // 2b. 针对大集合的单次随机取样检查
-        if (lengthBytes > 256 && !SequenceEqual_MidpointPreCheck(p1, p2, lengthBytes))
+        if (lengthBytes > 256 &&
+            !SequenceEqual_MidpointPreCheck(a, b, lengthBytes))
         {
             return false;
         }
 
-
-        return SequenceEqual_VectorT(p1, p2, lengthBytes);
-
+        return SequenceEqual_VectorT(a, b, lengthBytes);
     }
+
+
+
 
     /// <summary>
     /// 极短路径比较 (L &lt;= 32 字节)
@@ -65,15 +69,15 @@ public unsafe static partial class ValueTypeHelper
         if (lengthBytes <= 8)
         {
             ulong mask = VectorSearchHelper.GetMask(lengthBytes);
-            return (*(ulong*)p1 & mask) == (*(ulong*)p2 & mask);
+            return (*(ulong*) p1 & mask) == (*(ulong*) p2 & mask);
         }
 
         // --- 极致路径 B：9-16 字节 (两次 ulong 重叠比对) ---
         // 即使 lengthBytes 是 11，比较 [0..7] 和 [length-8...length-1] 也能覆盖全貌
         if (lengthBytes <= 16)
         {
-            if (*(ulong*)p1 != *(ulong*)p2) return false;
-            return *(ulong*)(p1 + lengthBytes - 8) == *(ulong*)(p2 + lengthBytes - 8);
+            if (*(ulong*) p1 != *(ulong*) p2) return false;
+            return *(ulong*) (p1 + lengthBytes - 8) == *(ulong*) (p2 + lengthBytes - 8);
         }
 
         // --- 极致路径 C：17-32 字节 (两次 Vector128 重叠比对) ---
@@ -92,7 +96,7 @@ public unsafe static partial class ValueTypeHelper
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     static unsafe bool SequenceEqual_VectorT(byte* p1, byte* p2, int len)
     {
-        
+
 
         // 1. 针对 32 字节以下直接走 ShortPath (已优化为无分支版本)
         if (len <= 32) return SequenceEqual_ShortPath(p1, p2, len);
@@ -164,7 +168,7 @@ public unsafe static partial class ValueTypeHelper
         }
 
         // 执行单次 8 字节比较
-        if (*(long*)(p1 + midpointOffset) != *(long*)(p2 + midpointOffset))
+        if (*(long*) (p1 + midpointOffset) != *(long*) (p2 + midpointOffset))
         {
             // [早期失败] 找到了不相等，则整个集合确定不相等
             return false;

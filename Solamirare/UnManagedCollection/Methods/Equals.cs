@@ -16,7 +16,9 @@ where T : unmanaged
     /// <returns></returns>
     public bool Equals(T* target, uint targetLength)
     {
-        return ValueTypeHelper.Equals(InternalPointer, Size, target, targetLength);
+        if(targetLength != Size) return false;
+
+        return ValueTypeHelper.Equals(InternalPointer, target, targetLength);
     }
 
 

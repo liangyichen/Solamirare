@@ -15,8 +15,10 @@ where T : unmanaged
        
         if (target is null || !activated) return false;
 
+        if (targetLength != UsageSize) return false;
 
-        return ValueTypeHelper.Equals(Pointer, UsageSize, target, targetLength);
+
+        return ValueTypeHelper.Equals(Pointer, target, targetLength);
     }
 
 
@@ -28,9 +30,12 @@ where T : unmanaged
     public bool Equals(UnManagedCollection<T>* target)
     {
         if (target is null || !activated) return false;
+
         if (target->IsEmpty != IsEmpty) return false;
 
-        return ValueTypeHelper.Equals(Pointer, UsageSize, target->InternalPointer, target->Size);
+        if (target->Size != UsageSize) return false;
+
+        return ValueTypeHelper.Equals(Pointer, target->InternalPointer, target->Size);
     }
 
     /// <summary>
@@ -43,7 +48,9 @@ where T : unmanaged
         if (target is null || !activated) return false;
         if (target->IsEmpty != IsEmpty) return false;
 
-        return ValueTypeHelper.Equals(Pointer, UsageSize, target->Pointer, target->UsageSize);
+        if (target->UsageSize != UsageSize) return false;
+
+        return ValueTypeHelper.Equals(Pointer, target->Pointer, target->UsageSize);
     }
 
     /// <summary>
@@ -55,7 +62,9 @@ where T : unmanaged
     {
         if (target.IsEmpty != IsEmpty || !activated) return false;
 
-        return ValueTypeHelper.Equals(Pointer, UsageSize, target.Pointer, target.UsageSize);
+        if (target.UsageSize != UsageSize) return false;
+
+        return ValueTypeHelper.Equals(Pointer, target.Pointer, target.UsageSize);
     }
 
     /// <summary>
@@ -83,7 +92,9 @@ where T : unmanaged
     {
         if (target.IsEmpty != IsEmpty || !activated) return false;
 
-        return ValueTypeHelper.Equals(Pointer, UsageSize, target.InternalPointer, target.Size);
+        if(target.Size != UsageSize) return false;
+
+        return ValueTypeHelper.Equals(Pointer, target.InternalPointer, target.Size);
     }
 
 
@@ -109,10 +120,15 @@ where T : unmanaged
     /// <returns></returns>
     public bool Equals(ReadOnlySpan<T> target)
     {
+        if (target.IsEmpty && IsEmpty) return true; //<--- 双方为空值的情况下这是必须的比较
+
+
         if (target.IsEmpty != IsEmpty || !activated) return false;
 
+        if (UsageSize != (uint)target.Length) return false;
+
         fixed (T* p = target)
-            return ValueTypeHelper.Equals(Pointer, UsageSize, p, (uint)target.Length);
+            return ValueTypeHelper.Equals(Pointer, p, (uint)target.Length);
 
     }
 

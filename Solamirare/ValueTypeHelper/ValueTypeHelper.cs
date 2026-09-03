@@ -393,12 +393,6 @@ namespace Solamirare
 
 
 
-
-
-
-
-
-
         /// <summary>
         /// 将 T* 指针转换为 byte*，零分配地模拟 MemoryMarshal.AsBytes 的语义。
         /// 此方法通过 ref 间接转换，向 JIT 提供了更明确的字节流视图，
